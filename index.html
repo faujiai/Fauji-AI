@@ -86,11 +86,15 @@ header{position:relative;z-index:10;background:linear-gradient(180deg,rgba(16,22
 /* STREAMING CURSOR */
 .stream-cursor::after{content:'|';animation:blink .7s step-end infinite;color:var(--green2);}
 /* TYPING */
-.typing .bub{padding:14px 18px;}
-.tdots{display:flex;gap:5px;align-items:center;}
-.td{width:8px;height:8px;background:var(--green2);border-radius:50%;opacity:.2;animation:tp 1.2s ease-in-out infinite;}
-.td:nth-child(2){animation-delay:.25s;}.td:nth-child(3){animation-delay:.5s;}
-@keyframes tp{40%{opacity:1;transform:scale(1.3);}}
+.typing .bub{padding:12px 16px;}
+.tdots{display:flex;flex-direction:column;gap:6px;align-items:flex-start;}
+.tdots-row{display:flex;gap:8px;align-items:center;}
+.td{width:10px;height:10px;background:var(--green2);clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);opacity:.2;animation:diamondPulse 1.2s ease-in-out infinite;}
+.td:nth-child(2){animation-delay:.2s;background:var(--gold2);}
+.td:nth-child(3){animation-delay:.4s;background:#ff6600;}
+.td-label{font-size:10px;color:var(--green2);letter-spacing:3px;font-weight:700;animation:labelBlink 1s ease-in-out infinite;}
+@keyframes diamondPulse{0%,100%{opacity:.15;transform:scale(0.7);}50%{opacity:1;transform:scale(1.3);}}
+@keyframes labelBlink{0%,100%{opacity:.3;}50%{opacity:1;}}
 .errbub{color:#ff7070!important;border-color:rgba(200,30,0,.4)!important;background:rgba(160,20,0,.15)!important;}
 /* INPUT */
 .izone{position:relative;z-index:10;background:linear-gradient(180deg,rgba(12,16,4,.98),rgba(8,12,2,1));border-top:2px solid var(--gold);padding:10px 12px 12px;flex-shrink:0;}
@@ -495,7 +499,9 @@ MEDICINE_KB+'\n\n'+
 '6. JOBS: When giving job info, rewrite simply - eligibility, last date, salary, apply link.\n'+
 '7. MEDICINE: Give disease->medicine->dose info. Always add: Serious case mein doctor zaroor milna.\n'+
 '8. Use memory context naturally.\n'+
-'9. Jai Hind!';
+'9. GREETING RULE: If user says Hi/Hello/Namaste/Hii/Hey - reply ONLY in 1-2 lines like: "Jai Hind Sir! Main aapki kya madad kar sakta hoon?" Nothing more.\n'+
+'10. SHORT ANSWERS: Simple questions ka short answer do. Sirf complex questions par detail do.\n'+
+'11. Jai Hind!';
 
 var NEWS_KW=['news','khabar','samachar','breaking','taaza khabar','aaj ki khabar','ipl score','cricket score','match result','share market','stock','election','vote','naukri','job','vacancy','recruitment','bharti','rojgar','sarkari job','current affairs','current events','aaj ka ghatna'];
 var ASTRO_KW=['rashifal','kundli','jyotish','astrology','rashi','horoscope','nakshatra','bhavishya','vastu','numerology','tarot','palmistry','palm reading','hast rekha'];
@@ -661,7 +667,8 @@ function addMsg(role,text,imgSrc,sources,rawText){
     d.innerHTML='<div class="av">FAI</div><div class="bwrap"><div class="bub">'+fmt(text)+'</div>'+srcH+actH+'<div class="btime">'+nowTime()+'</div></div>';
     if(rt&&rt.length>150){var ab=d.querySelector('.act-bar');var pb=document.createElement('button');pb.className='act-btn';pb.textContent='PDF';var captRt=rt;pb.onclick=function(){makePDF(captRt,'FAUJI AI');};ab.appendChild(pb);}
   }
-  c.appendChild(d);c.scrollTop=c.scrollHeight;
+  c.appendChild(d);
+  setTimeout(function(){c.scrollTop=c.scrollHeight;},50);
   return d;
 }
 
@@ -681,15 +688,35 @@ function finalizeStream(bubEl, fullText, sources){
   var rt = fullText;
   bubEl.classList.remove('stream-cursor');
   bubEl.innerHTML = fmt(fullText);
+  var bwrap = bubEl.parentNode;
+  bwrap.querySelectorAll('.btime').forEach(function(el){el.remove();});
+  bwrap.querySelectorAll('.act-bar').forEach(function(el){el.remove();});
+  bwrap.querySelectorAll('.src-bar').forEach(function(el){el.remove();});
   var srcH='';
-  if(sources&&sources.length){srcH='<div class="src-bar">';for(var i=0;i<Math.min(3,sources.length);i++){srcH+='<a class="src-lnk" href="'+sources[i].url+'" target="_blank">'+((sources[i].title||'Source').slice(0,24))+'</a>';}srcH+='</div>';}
-  var actH='<div class="act-bar"><button class="act-btn" onclick="copyText(this.closest(\'.msg\').querySelector(\'.bub\').innerHTML)">Copy</button><button class="act-btn" onclick="shareText(this.closest(\'.msg\').querySelector(\'.bub\').innerHTML)">Share</button></div>';
+  if(sources&&sources.length){
+    srcH='<div class="src-bar">';
+    for(var i=0;i<Math.min(3,sources.length);i++){
+      srcH+='<a class="src-lnk" href="'+sources[i].url+'" target="_blank">'+((sources[i].title||'Source').slice(0,24))+'</a>';
+    }
+    srcH+='</div>';
+  }
+  var cpBtn='<button class="act-btn" onclick="copyText(this.closest('[class*=msg]').querySelector('.bub').innerHTML)">Copy</button>';
+  var shBtn='<button class="act-btn" onclick="shareText(this.closest('[class*=msg]').querySelector('.bub').innerHTML)">Share</button>';
+  var actH='<div class="act-bar">'+cpBtn+shBtn+'</div>';
   bubEl.insertAdjacentHTML('afterend', srcH+actH+'<div class="btime">'+nowTime()+'</div>');
-  if(rt&&rt.length>150){var ab=d.querySelector('.act-bar');var pb=document.createElement('button');pb.className='act-btn';pb.textContent='PDF';pb.onclick=function(){makePDF(rt,'FAUJI AI');};ab.appendChild(pb);}
-  document.getElementById('chat').scrollTop=9999;
+  if(rt&&rt.length>150){
+    var ab=d.querySelector('.act-bar');
+    var pb=document.createElement('button');
+    pb.className='act-btn';
+    pb.textContent='PDF';
+    var captRt=rt;
+    pb.onclick=function(){makePDF(captRt,'FAUJI AI');};
+    ab.appendChild(pb);
+  }
+  setTimeout(function(){document.getElementById('chat').scrollTop=9999;},50);
 }
 
-function addTyp(){var boot=document.getElementById('boot');if(boot)boot.remove();var c=document.getElementById('chat'),d=document.createElement('div');d.id='typ';d.className='msg ai typing';d.innerHTML='<div class="av">FAI</div><div class="bwrap"><div class="bub"><div class="tdots"><span class="td"></span><span class="td"></span><span class="td"></span></div></div></div>';c.appendChild(d);c.scrollTop=c.scrollHeight;}
+function addTyp(){var boot=document.getElementById('boot');if(boot)boot.remove();var c=document.getElementById('chat'),d=document.createElement('div');d.id='typ';d.className='msg ai typing';d.innerHTML='<div class="av">FAI</div><div class="bwrap"><div class="bub"><div class="tdots"><div class="tdots-row"><span class="td"></span><span class="td"></span><span class="td"></span></div><div class="td-label">FAUJI AI PROCESSING...</div></div></div></div>';c.appendChild(d);c.scrollTop=c.scrollHeight;}
 function rmTyp(){var e=document.getElementById('typ');if(e)e.remove();}
 
 // GROQ STREAMING
