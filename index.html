@@ -689,9 +689,9 @@ function finalizeStream(bubEl, fullText, sources){
   bubEl.classList.remove('stream-cursor');
   bubEl.innerHTML = fmt(fullText);
   var bwrap = bubEl.parentNode;
-  bwrap.querySelectorAll('.btime').forEach(function(el){el.remove();});
-  bwrap.querySelectorAll('.act-bar').forEach(function(el){el.remove();});
-  bwrap.querySelectorAll('.src-bar').forEach(function(el){el.remove();});
+  var btimes=bwrap.querySelectorAll('.btime'); for(var i=btimes.length-1;i>=0;i--){btimes[i].remove();}
+  var abars=bwrap.querySelectorAll('.act-bar'); for(var i=abars.length-1;i>=0;i--){abars[i].remove();}
+  var sbars=bwrap.querySelectorAll('.src-bar'); for(var i=sbars.length-1;i>=0;i--){sbars[i].remove();}
   var srcH='';
   if(sources&&sources.length){
     srcH='<div class="src-bar">';
@@ -700,8 +700,8 @@ function finalizeStream(bubEl, fullText, sources){
     }
     srcH+='</div>';
   }
-  var cpBtn='<button class="act-btn" onclick="copyText(this.closest('[class*=msg]').querySelector('.bub').innerHTML)">Copy</button>';
-  var shBtn='<button class="act-btn" onclick="shareText(this.closest('[class*=msg]').querySelector('.bub').innerHTML)">Share</button>';
+  var cpBtn='<button class="act-btn" onclick="copyText(this.closest('.msg').querySelector('.bub').innerHTML)">Copy</button>';
+  var shBtn='<button class="act-btn" onclick="shareText(this.closest('.msg').querySelector('.bub').innerHTML)">Share</button>';
   var actH='<div class="act-bar">'+cpBtn+shBtn+'</div>';
   bubEl.insertAdjacentHTML('afterend', srcH+actH+'<div class="btime">'+nowTime()+'</div>');
   if(rt&&rt.length>150){
