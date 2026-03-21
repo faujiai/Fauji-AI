@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
+<title>FAUJI AI — Jai Hind</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --gold:#d4a017;--gold2:#f0c040;
+  --green:#4a7a1e;--green2:#7ab840;
+  --red:#cc2200;
+  --text:#e8ddb8;--muted:#7a7a5a;
+  --border:#3a4a20;--darker:#0d1105;
+}
+html{height:100%;}
+body{height:100dvh;font-family:Arial,sans-serif;background:var(--darker);color:var(--text);overflow:hidden;display:flex;flex-direction:column;}
+body::before{content:'';position:fixed;inset:0;
+  background-image:
+    radial-gradient(ellipse 200px 130px at  6% 15%,rgba(60,80,18,.8) 0%,transparent 65%),
+    radial-gradient(ellipse 160px 200px at 30% 62%,rgba(38,52,10,.7) 0%,transparent 65%),
+    radial-gradient(ellipse 240px 110px at 62%  8%,rgba(72,92,22,.6) 0%,transparent 65%),
+    radial-gradient(ellipse 170px 170px at 80% 46%,rgba(28,40,8,.75) 0%,transparent 65%),
+    radial-gradient(ellipse 140px 180px at 96% 82%,rgba(58,76,16,.6) 0%,transparent 65%),
+    radial-gradient(ellipse 180px  95px at 16% 92%,rgba(48,64,14,.7) 0%,transparent 65%);
+  background-color:var(--darker);pointer-events:none;z-index:0;}
+body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.04) 3px,rgba(0,0,0,.04) 4px);pointer-events:none;z-index:0;}
+
+header{position:relative;z-index:10;background:linear-gradient(180deg,rgba(16,22,4,1),rgba(10,14,3,.98));border-bottom:3px solid var(--gold);flex-shrink:0;overflow:hidden;}
+header::before{content:'';position:absolute;top:0;left:-120%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(212,160,23,.18),transparent);animation:shimmer 5s ease-in-out infinite 2s;z-index:1;pointer-events:none;}
+@keyframes shimmer{to{left:140%;}}
+.tricolor{height:5px;background:linear-gradient(90deg,#FF9933 0% 33.33%,#fff 33.33% 66.66%,#138808 66.66% 100%);}
+.hdr{display:flex;align-items:center;gap:10px;padding:8px 12px 10px;position:relative;z-index:2;}
+.chakra svg{display:block;flex-shrink:0;animation:spinZ 14s linear infinite;filter:drop-shadow(0 0 14px rgba(212,160,23,.75));}
+@keyframes spinZ{to{transform:rotate(360deg);}}
+.htxt{flex:1;min-width:0;}
+.htitle{font-size:25px;font-weight:900;letter-spacing:5px;line-height:1;color:var(--gold2);animation:glow 3s ease-in-out infinite;}
+@keyframes glow{0%,100%{text-shadow:0 0 18px rgba(212,160,23,.6),0 2px 4px rgba(0,0,0,.9);}50%{text-shadow:0 0 40px rgba(212,160,23,1),0 0 80px rgba(212,160,23,.4),0 2px 4px rgba(0,0,0,.9);}}
+.hsub{font-size:8px;letter-spacing:2px;color:#b8985a;margin-top:2px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hdr-right{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.jaihind{font-size:13px;font-weight:900;letter-spacing:2px;color:#ff3300;text-shadow:0 0 16px rgba(255,50,0,.7);animation:blnk 2s step-end infinite;white-space:nowrap;}
+@keyframes blnk{50%{opacity:.2;}}
+.wa-btn{display:flex;align-items:center;gap:4px;padding:5px 10px;background:linear-gradient(135deg,rgba(37,211,102,.2),rgba(37,211,102,.1));border:1px solid rgba(37,211,102,.6);border-radius:20px;color:#25d366;font-family:Arial,sans-serif;font-size:11px;font-weight:700;cursor:pointer;text-decoration:none;white-space:nowrap;transition:all .2s;}
+.wa-btn:hover{background:linear-gradient(135deg,rgba(37,211,102,.35),rgba(37,211,102,.2));}
+.credit{position:absolute;bottom:4px;right:10px;font-size:7.5px;color:rgba(196,169,106,.3);letter-spacing:.8px;pointer-events:none;z-index:3;}
+
+#chat{flex:1;overflow-y:auto;padding:14px 12px 8px;display:flex;flex-direction:column;gap:14px;scroll-behavior:smooth;position:relative;z-index:1;min-height:0;}
+#chat::-webkit-scrollbar{width:3px;}
+#chat::-webkit-scrollbar-track{background:transparent;}
+#chat::-webkit-scrollbar-thumb{background:rgba(90,120,40,.5);border-radius:3px;}
+
+#boot{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:20px;min-height:100%;}
+.brw{position:relative;width:86px;height:86px;margin:0 auto;}
+.brw svg{animation:spinZ 8s linear infinite;filter:drop-shadow(0 0 22px rgba(212,160,23,.85));}
+.br1{position:absolute;inset:-13px;border:2px solid transparent;border-top-color:var(--gold);border-bottom-color:var(--gold2);border-radius:50%;animation:spinZ 3s linear infinite;}
+.br2{position:absolute;inset:-24px;border:1px dashed rgba(212,160,23,.25);border-radius:50%;animation:spinZ 9s linear infinite reverse;}
+.bttl{font-size:46px;font-weight:900;letter-spacing:7px;color:var(--gold2);animation:glow 2s ease-in-out infinite;}
+.bsub{font-size:11px;letter-spacing:2px;color:#b8985a;line-height:2.1;text-transform:uppercase;}
+.btype{font-size:11px;color:#7ab840;letter-spacing:2px;border-right:2px solid #7ab840;white-space:nowrap;overflow:hidden;animation:typing 3s steps(38,end) forwards,bc .6s step-end infinite;}
+@keyframes typing{from{width:0}to{width:100%}}
+@keyframes bc{50%{border-color:transparent}}
+.qbtns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px;}
+.qbtn{padding:8px 14px;background:linear-gradient(135deg,rgba(60,80,20,.5),rgba(40,55,12,.4));border:1px solid rgba(90,120,40,.5);border-radius:4px;color:#d8c890;font-family:Arial,sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .25s;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);}
+.qbtn:hover{background:linear-gradient(135deg,rgba(212,160,23,.25),rgba(160,120,15,.2));border-color:var(--gold);color:var(--gold2);}
+
+/* Messages */
+.msg{display:flex;gap:8px;width:100%;animation:mIn .3s cubic-bezier(.34,1.56,.64,1);}
+@keyframes mIn{from{opacity:0;transform:translateY(12px) scale(.97);}to{opacity:1;transform:translateY(0) scale(1);}}
+.msg.user{flex-direction:row-reverse;}
+.msg.ai{flex-direction:row;}
+.av{width:34px;height:34px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:900;clip-path:polygon(15% 0%,85% 0%,100% 15%,100% 85%,85% 100%,15% 100%,0% 85%,0% 15%);align-self:flex-end;}
+.msg.user .av{background:linear-gradient(135deg,#3a5018,#2a3c10);border:1.5px solid var(--gold2);color:var(--gold2);box-shadow:0 0 12px rgba(212,160,23,.35);}
+.msg.ai   .av{background:linear-gradient(135deg,#1a2c06,#102002);border:1.5px solid var(--green2);color:var(--green2);box-shadow:0 0 12px rgba(122,184,64,.3);}
+.bwrap{display:flex;flex-direction:column;max-width:82%;}
+.msg.user .bwrap{align-items:flex-end;}
+.msg.ai   .bwrap{align-items:flex-start;}
+.bub{padding:11px 15px;font-size:14.5px;line-height:1.75;word-break:break-word;position:relative;}
+.bub b{color:var(--gold2);font-weight:700;}
+.msg.user .bub{background:linear-gradient(135deg,rgba(70,95,25,.65),rgba(50,68,15,.55));border:1px solid rgba(140,180,50,.4);border-radius:16px 2px 16px 16px;box-shadow:0 4px 20px rgba(0,0,0,.4);white-space:pre-wrap;}
+.msg.user .bub::before{content:'';position:absolute;top:-2px;right:-2px;width:10px;height:10px;border-top:2px solid var(--gold2);border-right:2px solid var(--gold2);}
+.msg.user .bub::after{content:'';position:absolute;bottom:-2px;left:-2px;width:10px;height:10px;border-bottom:2px solid var(--gold2);border-left:2px solid var(--gold2);}
+.msg.ai .bub{background:linear-gradient(135deg,rgba(24,38,8,.88),rgba(14,22,4,.78));border:1px solid rgba(90,140,40,.45);border-radius:2px 16px 16px 16px;box-shadow:0 4px 20px rgba(0,0,0,.5);}
+.msg.ai .bub::before{content:'';position:absolute;top:-2px;left:-2px;width:10px;height:10px;border-top:2px solid var(--green2);border-left:2px solid var(--green2);}
+.msg.ai .bub::after{content:'';position:absolute;bottom:-2px;right:-2px;width:10px;height:10px;border-bottom:2px solid var(--green2);border-right:2px solid var(--green2);}
+.bub img.uimg{max-width:200px;max-height:200px;border-radius:10px;display:block;margin-bottom:8px;border:1px solid rgba(212,160,23,.3);}
+
+/* Action bar below AI message */
+.msg-actions{display:flex;gap:8px;margin-top:5px;padding:0 4px;}
+.act-btn{background:rgba(60,80,20,.4);border:1px solid rgba(90,120,40,.4);border-radius:12px;color:var(--muted);font-size:11px;padding:3px 10px;cursor:pointer;transition:all .2s;font-family:Arial,sans-serif;}
+.act-btn:hover{background:rgba(212,160,23,.15);border-color:var(--gold);color:var(--gold2);}
+
+.btime{font-size:9px;color:var(--muted);margin-top:3px;padding:0 4px;}
+
+.src-bar{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
+.src-link{font-size:10px;padding:2px 8px;background:rgba(212,160,23,.12);border:1px solid rgba(212,160,23,.3);border-radius:10px;color:var(--gold2);text-decoration:none;white-space:nowrap;}
+.src-link:hover{background:rgba(212,160,23,.25);}
+
+.typing .bub{padding:14px 18px;}
+.tdots{display:flex;gap:6px;align-items:center;}
+.td{width:8px;height:8px;background:var(--green2);border-radius:50%;opacity:.2;animation:tp 1.2s ease-in-out infinite;}
+.td:nth-child(2){animation-delay:.25s;}.td:nth-child(3){animation-delay:.5s;}
+@keyframes tp{0%,100%{opacity:.2;transform:scale(.8);}40%{opacity:1;transform:scale(1.3);}}
+
+/* Input zone */
+.izone{position:relative;z-index:10;background:linear-gradient(180deg,rgba(12,16,4,.98),rgba(8,12,2,1));border-top:2px solid var(--gold);padding:10px 12px 12px;flex-shrink:0;}
+.izone::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold2),transparent);opacity:.4;}
+#prev-wrap{display:none;position:relative;width:fit-content;margin-bottom:8px;}
+#prev-wrap img{max-height:72px;border-radius:8px;border:1px solid var(--gold);}
+.rm-img{position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--red);color:#fff;font-size:10px;font-weight:900;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.irow{display:flex;gap:8px;align-items:flex-end;}
+.ibox{flex:1;background:rgba(28,40,10,.6);border:1.5px solid rgba(60,80,20,.7);border-radius:12px;padding:8px 12px;display:flex;align-items:flex-end;gap:7px;transition:border-color .2s;box-shadow:0 2px 12px rgba(0,0,0,.3);}
+.ibox:focus-within{border-color:var(--gold);box-shadow:0 2px 20px rgba(212,160,23,.2);}
+.att{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:0 2px;transition:color .2s,transform .15s;flex-shrink:0;line-height:1;}
+.att:hover{color:var(--gold2);transform:scale(1.15);}
+#finp{display:none;}
+#mi{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:Arial,sans-serif;font-size:15px;resize:none;min-height:22px;max-height:90px;overflow-y:auto;line-height:1.5;}
+#mi::placeholder{color:var(--muted);font-style:italic;font-size:14px;}
+#vbtn{background:none;border:1px solid rgba(122,184,64,.3);border-radius:50%;color:var(--muted);font-size:20px;cursor:pointer;padding:4px 6px;transition:all .2s;flex-shrink:0;line-height:1;width:34px;height:34px;display:flex;align-items:center;justify-content:center;}
+#vbtn:hover{color:#ff6060;border-color:#ff6060;transform:scale(1.15);}
+#vbtn.on{color:#fff;background:#ff2020;border-color:#ff2020;animation:pmic 1s ease-in-out infinite;}
+@keyframes pmic{0%,100%{transform:scale(1);}50%{transform:scale(1.3);box-shadow:0 0 12px #ff2020;}}
+#sb{width:44px;height:44px;background:linear-gradient(135deg,#3a5018,#5a8a2a);border:1.5px solid var(--gold);border-radius:10px;color:var(--gold2);cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;box-shadow:0 4px 16px rgba(0,0,0,.4);}
+#sb:hover{background:linear-gradient(135deg,#5a8a2a,#7ab840);transform:scale(1.06);}
+#sb:active{transform:scale(.95);}
+#sb:disabled{opacity:.3;cursor:not-allowed;transform:none;}
+.ifoot{display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:10px;color:var(--muted);}
+.cb{background:none;border:none;color:var(--muted);cursor:pointer;font-size:10px;letter-spacing:1px;padding:1px 6px;transition:color .2s;}
+.cb:hover{color:var(--red);}
+#vstatus{display:none;font-size:10px;color:#ff4040;font-weight:700;letter-spacing:1px;animation:pmic 1s infinite;}
+.errbub{color:#ff7070!important;border-color:rgba(200,30,0,.5)!important;background:linear-gradient(135deg,rgba(160,20,0,.2),rgba(120,10,0,.15))!important;}
+
+/* Toast notification */
+#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(122,184,64,.9);color:#fff;padding:8px 20px;border-radius:20px;font-size:13px;font-weight:700;z-index:999;display:none;letter-spacing:.5px;}
+</style>
+</head>
+<body>
+
+<div id="toast">✓ Copy ho gaya!</div>
+
+<header>
+  <div class="tricolor"></div>
+  <div class="hdr">
+    <div class="chakra">
+      <svg width="44" height="44" viewBox="0 0 52 52" fill="none">
+        <circle cx="26" cy="26" r="22" stroke="#d4a017" stroke-width="1.5" fill="rgba(212,160,23,.08)"/>
+        <circle cx="26" cy="26" r="6" fill="none" stroke="#d4a017" stroke-width="1.5"/>
+        <g stroke="#d4a017" stroke-width="1">
+          <line x1="26" y1="4"  x2="26" y2="20"/>  <line x1="26" y1="32" x2="26" y2="48"/>
+          <line x1="4"  y1="26" x2="20" y2="26"/>  <line x1="32" y1="26" x2="48" y2="26"/>
+          <line x1="9.4" y1="9.4"  x2="20.7" y2="20.7"/> <line x1="31.3" y1="31.3" x2="42.6" y2="42.6"/>
+          <line x1="42.6" y1="9.4" x2="31.3" y2="20.7"/> <line x1="20.7" y1="31.3" x2="9.4"  y2="42.6"/>
+          <line x1="6.6" y1="17"   x2="20.2" y2="23.5"/> <line x1="31.8" y1="28.5" x2="45.4" y2="35"/>
+          <line x1="17"  y1="6.6"  x2="23.5" y2="20.2"/> <line x1="28.5" y1="31.8" x2="35"   y2="45.4"/>
+          <line x1="35"  y1="6.6"  x2="28.5" y2="20.2"/> <line x1="23.5" y1="31.8" x2="17"   y2="45.4"/>
+          <line x1="45.4" y1="17"  x2="31.8" y2="23.5"/> <line x1="20.2" y1="28.5" x2="6.6"  y2="35"/>
+        </g>
+      </svg>
+    </div>
+    <div class="htxt">
+      <div class="htitle">FAUJI AI</div>
+      <div class="hsub">Indian Army Intelligence System · सेना एआई</div>
+    </div>
+    <div class="hdr-right">
+      <div class="jaihind">JAI HIND 🇮🇳</div>
+      <a class="wa-btn" href="https://wa.me/917054473227" target="_blank">💬 Contact</a>
+    </div>
+    <div class="credit">✦ Design by Hav SK Singh</div>
+  </div>
+  <div class="tricolor"></div>
+</header>
+
+<div id="chat">
+  <div id="boot">
+    <div class="brw">
+      <div class="br1"></div><div class="br2"></div>
+      <svg width="86" height="86" viewBox="0 0 80 80" fill="none">
+        <circle cx="40" cy="40" r="32" stroke="#d4a017" stroke-width="2" fill="rgba(212,160,23,.06)"/>
+        <circle cx="40" cy="40" r="9" fill="none" stroke="#d4a017" stroke-width="2"/>
+        <g stroke="#d4a017" stroke-width="1.2">
+          <line x1="40" y1="8"  x2="40" y2="31"/> <line x1="40" y1="49" x2="40" y2="72"/>
+          <line x1="8"  y1="40" x2="31" y2="40"/> <line x1="49" y1="40" x2="72" y2="40"/>
+          <line x1="14" y1="14" x2="29" y2="29"/> <line x1="51" y1="51" x2="66" y2="66"/>
+          <line x1="66" y1="14" x2="51" y2="29"/> <line x1="29" y1="51" x2="14" y2="66"/>
+          <line x1="10" y1="26" x2="30" y2="37"/> <line x1="50" y1="43" x2="70" y2="54"/>
+          <line x1="26" y1="10" x2="37" y2="30"/> <line x1="43" y1="50" x2="54" y2="70"/>
+          <line x1="54" y1="10" x2="43" y2="30"/> <line x1="37" y1="50" x2="26" y2="70"/>
+          <line x1="70" y1="26" x2="50" y2="37"/> <line x1="30" y1="43" x2="10" y2="54"/>
+        </g>
+      </svg>
+    </div>
+    <div class="bttl">FAUJI AI</div>
+    <div class="bsub">Bharat Ki Sena Ka AI Assistant<br>News · Army Rules · GK · Document · Image</div>
+    <div class="btype">ARMY RULES + REAL NEWS + GK · JAI HIND!</div>
+    <div class="qbtns">
+      <button class="qbtn" onclick="q('Aaj ki taaza khabar kya hai?')">📰 Aaj Ki News</button>
+      <button class="qbtn" onclick="q('Army mein leave ka kya niyam hai? Annual leave, casual leave batao')">📋 Army Leave Rules</button>
+      <button class="qbtn" onclick="q('Official letter likhne ka sahi tarika kya hai Army mein?')">✉ Letter Format</button>
+      <button class="qbtn" onclick="q('SSC GD ke 5 GK questions do with answers')">📚 GK Quiz</button>
+    </div>
+  </div>
+</div>
+
+<div class="izone">
+  <div id="prev-wrap">
+    <img id="prev-img" src="" alt="preview"/>
+    <button class="rm-img" onclick="removeImg()">✕</button>
+  </div>
+  <div class="irow">
+    <div class="ibox">
+      <button class="att" onclick="document.getElementById('finp').click()" title="Photo/Document">📎</button>
+      <input type="file" id="finp" accept="image/*" onchange="onFile(event)"/>
+      <textarea id="mi" placeholder="Army rules, news, GK, kuch bhi pucho... 🪖" rows="1" onkeydown="hk(event)" oninput="ar(this)"></textarea>
+      <button id="vbtn" onclick="startVoice()" title="Voice bolo">🎙</button>
+    </div>
+    <button id="sb" onclick="go()">➤</button>
+  </div>
+  <div class="ifoot">
+    <span id="vstatus">🎙 Bol raha hoon... (dobara dabao band karne ke liye)</span>
+    <span style="color:var(--green2);font-size:10px;">⚡ Live News + Army Rules</span>
+    <button class="cb" onclick="clr()">✕ Clear</button>
+  </div>
+</div>
+
+<script>
+/* =====================================================
+   FAUJI AI — COMPLETE FINAL VERSION
+   News    : Tavily real-time search
+   Chat    : Groq llama-3.3-70b
+   Vision  : Groq llama-4-scout
+   Fallback: Gemini 2.0 Flash
+   Army Rules: Built-in comprehensive memory
+   Design by Hav SK Singh
+===================================================== */
+
+const TAVILY_KEY = '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';
+const GROQ_KEY   = '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';
+const GROQ_URL   = 'https://api.groq.com/openai/v1/chat/completions';
+const CHAT_MODEL = 'llama-3.3-70b-versatile';
+const VIS_MODEL  = 'meta-llama/llama-4-scout-17b-16e-instruct';
+const GEM_KEY    = 'AIzaSyDpNGQre1dxyc1T2o51-3EF-KrlqH3Fark';
+const GEM_URL    = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + GEM_KEY;
+
+/* ── ARMY KNOWLEDGE BASE ── */
+const ARMY_KNOWLEDGE = `
+=== INDIAN ARMY — COMPREHENSIVE RULES & REGULATIONS ===
+
+## LEAVE RULES (Army Leave Rules 1933 & Amendments)
+- Annual Leave (AL): JCO/OR — 30 days/year. Officers — 60 days/year. Can be accumulated up to 300 days.
+- Casual Leave (CL): 20 days/year. Cannot be accumulated or combined with other leave.
+- Sick Leave (SL): As recommended by Medical Officer. No limit but subject to Medical Board.
+- Maternity Leave: 180 days for female soldiers. Paternity leave: 15 days.
+- Leave on Average Pay (LAP): For officers during peace posting.
+- Furlough: For officers, 2 months every 3 years with pay.
+- Leave rules governed by: Regulations for the Army 1987, Para 293-350.
+
+## PROMOTION RULES
+- Promotion based on: ACRR (Annual Confidential Report), seniority, vacancy, selection board.
+- ACR grading: Outstanding (9), Very Good (7-8), Good (5-6), Average (3-4), Below Average (1-2).
+- MACP (Modified Assured Career Progression): At 8, 16, 24 years of service if promotion not received.
+- JCO promotion: From Naib Subedar to Subedar to Subedar Major.
+- Selection board held at Army HQ for Colonel and above.
+
+## OFFICIAL LETTER WRITING FORMAT (Army)
+FROM:
+[Rank & Name]
+[Unit/Formation]
+[Station]
+[Date in format: DD MMM YYYY]
+
+TO:
+[Designation]
+[Address]
+
+SUBJECT: [Subject in capital letters]
+
+REFERENCE: [Ref number/Previous correspondence if any]
+
+Sir/Ma'am,
+
+[Body — para 1: Introduction/Background]
+[Body — para 2: Main content]
+[Body — para 3: Action requested/Summary]
+
+Yours faithfully/Obediently,
+
+[Signature]
+[Rank, Name, Number]
+[Appointment]
+
+## E-OFFICE RULES (Army)
+- All correspondence through ARPAN (Army Portal for Administration) / OASIS system.
+- DSC (Digital Signature Certificate) mandatory for all files.
+- File movement: Inward → dealing assistant → Section Officer → CO → Commander.
+- Maximum file pendency: 7 working days at each level.
+- Classified documents: Only on ASNET (Army Secure Network), not on civil internet.
+- Army Order 12/2019: All leave applications through e-leave module only.
+- Complaints through SPARSH portal (Service, Pay And Related Grievances Speedy Handling).
+
+## PAY & ALLOWANCES (7th CPC)
+- Military Service Pay (MSP): Officers ₹15,500/month, JCO ₹5,200, OR ₹3,600.
+- X Group Pay (Tech trades): ₹6,200/month additional.
+- Y Group Pay: ₹4,200/month additional.
+- Field Area Allowance: High altitude ₹25,000-42,000/month.
+- Kit Maintenance Allowance: ₹20,000/year (one time) + ₹5,000/year recurring.
+- Ration Money Allowance: As per entitlement.
+- DA (Dearness Allowance): Revised every 6 months by Government.
+
+## DISCIPLINE & CONDUCT (Army Act 1950)
+- Section 34: Offences punishable by court martial.
+- Section 52: Desertion — maximum life imprisonment.
+- Section 63: Conduct unbecoming of an officer.
+- Summary Court Martial (SCM): For OR, can award up to 28 days rigorous imprisonment.
+- District Court Martial (DCM): For JCOs.
+- General Court Martial (GCM): For officers and serious offences.
+- FGCM (Field General Court Martial): During active operations.
+- Redressal of grievances: AO 45/2001 — complaint to CO, then Brigade/Division HQ.
+
+## UNIFORM & DRESS REGULATIONS (Dress Regulations for Army 1985)
+- No. 1 Dress (Full Ceremonial): State functions, passing out parades.
+- No. 4 Dress (Service Dress): Office, formal duties.
+- No. 5 Dress (Combat/Field): Field duties, exercises.
+- No. 8 Dress (PT Kit): Physical training.
+- Rank insignia: As per AO/Army Instruction.
+- Beard: Prohibited except for Sikhs (with permission) and on medical grounds.
+
+## PENSION RULES (CDA Pension Circular)
+- OROP (One Rank One Pension): Equal pension for equal rank and service.
+- Service pension: Minimum 15 years qualifying service.
+- Full pension: 33 years service = 50% of last pay drawn.
+- Disability pension: On medical invalidment.
+- Family pension: 30% of last pay for widow/children.
+- ESM (Ex-Servicemen) benefits: ECHS medical, canteen, reservation.
+
+## TRANSFERS & POSTING
+- Regulated by MS Branch (Military Secretary Branch) at Army HQ.
+- Field tenure: 2-3 years in field areas, 3-4 years peace.
+- Compassionate posting: On medical/family grounds.
+- Tenure posting: Specific appointments with fixed tenure.
+- Hard Area posting: Additional emoluments.
+
+## COURT OF INQUIRY (COI)
+- Ordered by CO for investigation of incidents.
+- Presided by officer senior to those under inquiry.
+- Report submitted within 30 days.
+- Types: Formal COI, Summary of Evidence.
+
+## ADMINISTRATIVE ORDERS
+- Part I Orders (P1O): Postings, promotions, appointments.
+- Part II Orders (P2O): Pay matters, increments, recoveries.
+- Part III Orders: Routine orders, unit administration.
+
+## MILITARY INTELLIGENCE & SECURITY
+- Security of classified documents: As per Security Manual 1994.
+- HUMINT, SIGINT, IMINT operations: Under MI Directorate.
+- Reporting of sensitive information to nearest Intelligence Unit.
+
+## ARMY WELFARE
+- AWWA (Army Wives Welfare Association): Welfare of families.
+- AWF (Army Welfare Fund): Financial assistance.
+- AEL (Army Educational Leave): For higher education with pay.
+- AWES schools: Army Welfare Education Society — 247 schools pan India.
+- AWHO (Army Welfare Housing Organisation): Housing schemes.
+- ECHS (Ex-Servicemen Contributory Health Scheme): Medical for ESM.
+
+## REGIMENTAL TRADITIONS
+- Each regiment has battle honours, war cry, regimental march.
+- Regimental Centre: Recruiting and training depot.
+- Regimental Messes: Officers' Mess, JCOs' Mess, ORs' Mess.
+- Dining-in nights: Formal mess functions with protocol.
+
+## IMPORTANT ARMY ACTS & REGULATIONS
+- Army Act 1950
+- Army Rules 1954
+- Regulations for the Army 1987
+- Army Instructions (AIs) — issued by Army HQ
+- Army Orders (AOs) — for all ranks
+- Military Lands and Cantonments Act 2006
+- Armed Forces Tribunal Act 2007
+- Veterans Commission Act
+
+## HONOURS & AWARDS
+- Param Vir Chakra (PVC): Highest gallantry award.
+- Maha Vir Chakra (MVC): Second highest.
+- Vir Chakra (VrC): Third highest gallantry.
+- Ashoka Chakra, Kirti Chakra, Shaurya Chakra: Peacetime gallantry.
+- Sena Medal, Vishisht Seva Medal, Param Vishisht Seva Medal: Service awards.
+- Unit Citations: COAS Unit Citation, Army Commander's Unit Citation.
+
+## IMPORTANT PORTALS
+- SPARSH: sparsh.defenceservices.in — Pension, pay grievances
+- ARPAN: Army portal for administration
+- ASKIT: Army School of Knowledge & IT
+- DGIPR: Defence public relations
+- Sainik Kalyan: Welfare portal for ESM
+- Army e-Learning: Online training modules
+`;
+
+const SYSTEM = `Tum "FAUJI AI" ho — Indian Army ka intelligent AI assistant.
+
+${ARMY_KNOWLEDGE}
+
+=== NIYAM ===
+1. Apna naam sirf "FAUJI AI" batao. Kisi bhi company ya model ka naam mat lo.
+2. Hamesha SIRF HINDI mein jawab do. Roman ya English bilkul nahi, jab tak user khud English mein na pooche.
+3. Army rules ke baare mein upar diya gaya comprehensive knowledge use karo — accurate jawab do.
+4. Document ya image mein jo likha ho, seedha Hindi mein point-wise batao.
+5. Lambi bakwaas nahi, seedha kaam ka jawab do.
+6. Letter format poochha jaye to proper Army format mein likho.
+7. Desh bhakti aur Indian Army ki spirit. Jai Hind!`;
+
+const NEWS_KW=['news','khabar','samachar','aaj','today','latest','abhi','current','taaza','taza','breaking','kal','parso','naya','nai','happening','chal raha','ho raha','update'];
+
+let hist=[],pendingImg=null,recog=null,listening=false;
+
+/* ── VOICE WELCOME ── */
+function speak(t){
+  if(!window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(t);
+  u.lang='hi-IN';u.rate=0.9;u.pitch=1.1;u.volume=1;
+  const vs=speechSynthesis.getVoices();
+  const v=vs.find(x=>x.lang==='hi-IN')||vs.find(x=>x.lang.startsWith('hi'))||vs.find(x=>x.lang==='en-IN')||null;
+  if(v) u.voice=v;
+  speechSynthesis.speak(u);
+}
+function welcome(){ speak('FAUJI AI mein aapka swagat hai! Jai Hind!'); }
+window.addEventListener('load',()=>{
+  if(!window.speechSynthesis) return;
+  if(speechSynthesis.getVoices().length) setTimeout(welcome,800);
+  else { speechSynthesis.onvoiceschanged=()=>{ speechSynthesis.onvoiceschanged=null; setTimeout(welcome,400); }; setTimeout(welcome,2000); }
+});
+
+/* ── VOICE INPUT — Fixed ── */
+function startVoice(){
+  // Try both standard and webkit
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){
+    showToast('❌ Is browser mein voice supported nahi');
+    return;
+  }
+  if(listening){
+    if(recog) recog.stop();
+    return;
+  }
+  try{
+    recog = new SR();
+    recog.continuous = false;
+    recog.interimResults = false;
+    recog.lang = 'hi-IN';
+    recog.maxAlternatives = 1;
+
+    recog.onstart = () => {
+      listening = true;
+      document.getElementById('vbtn').classList.add('on');
+      document.getElementById('vstatus').style.display = 'inline';
+    };
+    recog.onresult = (e) => {
+      const transcript = e.results[0][0].transcript;
+      document.getElementById('mi').value = transcript;
+      ar(document.getElementById('mi'));
+      // Auto send after voice
+      setTimeout(()=>go(), 500);
+    };
+    recog.onerror = (e) => {
+      listening = false;
+      document.getElementById('vbtn').classList.remove('on');
+      document.getElementById('vstatus').style.display = 'none';
+      if(e.error==='not-allowed') showToast('❌ Mic permission do — browser settings mein');
+      else if(e.error==='no-speech') showToast('⚠ Koi awaaz nahi aayi, dobara try karo');
+    };
+    recog.onend = () => {
+      listening = false;
+      document.getElementById('vbtn').classList.remove('on');
+      document.getElementById('vstatus').style.display = 'none';
+    };
+    recog.start();
+  } catch(e){
+    showToast('❌ Voice error: '+e.message);
+  }
+}
+
+/* ── FILE ── */
+function onFile(e){
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=ev=>{ pendingImg=ev.target.result; document.getElementById('prev-img').src=pendingImg; document.getElementById('prev-wrap').style.display='block'; };
+  r.readAsDataURL(f); e.target.value='';
+}
+function removeImg(){ pendingImg=null; document.getElementById('prev-wrap').style.display='none'; document.getElementById('prev-img').src=''; }
+
+/* ── HELPERS ── */
+function q(t){ document.getElementById('mi').value=t; go(); }
+function hk(e){ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); go(); } }
+function ar(el){ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,90)+'px'; }
+function now(){ const d=new Date(); return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0'); }
+function isNews(txt){ const l=txt.toLowerCase(); return NEWS_KW.some(w=>l.includes(w)); }
+
+function showToast(msg,dur=2500){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.style.display='block';
+  setTimeout(()=>t.style.display='none',dur);
+}
+
+function clr(){
+  hist=[];
+  const c=document.getElementById('chat'); c.innerHTML='';
+  const d=document.createElement('div'); d.id='boot';
+  d.innerHTML='<div style="font-size:38px;font-weight:900;color:var(--gold2);letter-spacing:6px;text-shadow:0 0 30px rgba(212,160,23,.8)">FAUJI AI</div><div style="font-size:11px;color:var(--muted);letter-spacing:2px;margin-top:10px;text-transform:uppercase;">Mission Cleared · Ready</div>';
+  c.appendChild(d);
+}
+
+/* ── FORMAT — NO <br> tags visible ── */
+function fmt(raw){
+  // Remove literal <br> text if model outputs it as text
+  let t = raw
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;');
+  // Now restore proper HTML formatting
+  t = t
+    .replace(/\*\*(.+?)\*\*/g,'<b>$1</b>')
+    .replace(/^#{1,3}\s+(.+)$/gm,'<b>$1</b>')
+    // Convert literal "&lt;br&gt;" back to line break
+    .replace(/&lt;br&gt;/gi,'<br>')
+    .replace(/&lt;br \/&gt;/gi,'<br>')
+    .replace(/\n/g,'<br>');
+  return t;
+}
+function esc(t){ return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
+
+/* ── COPY FUNCTION ── */
+function copyText(txt){
+  // Remove HTML tags for clipboard
+  const plain = txt.replace(/<br\s*\/?>/gi,'\n').replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>');
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(plain).then(()=>showToast('✓ Copy ho gaya!')).catch(()=>fallbackCopy(plain));
+  } else fallbackCopy(plain);
+}
+function fallbackCopy(txt){
+  const ta=document.createElement('textarea');
+  ta.value=txt; ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+  document.body.removeChild(ta); showToast('✓ Copy ho gaya!');
+}
+
+/* ── SHARE FUNCTION ── */
+function shareText(txt){
+  const plain = txt.replace(/<br\s*\/?>/gi,'\n').replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>');
+  if(navigator.share){
+    navigator.share({ title:'FAUJI AI', text: plain }).catch(()=>{});
+  } else {
+    copyText(txt);
+    showToast('📋 Clipboard mein copy hua! (Share supported nahi)');
+  }
+}
+
+/* ── ADD MESSAGE ── */
+function addMsg(role,text,imgSrc,sources,rawText){
+  const boot=document.getElementById('boot'); if(boot) boot.remove();
+  const c=document.getElementById('chat'), d=document.createElement('div');
+  if(role==='user'){
+    d.className='msg user';
+    let inner='';
+    if(imgSrc) inner+=`<img class="uimg" src="${imgSrc}" alt="img"/>`;
+    if(text)   inner+=esc(text);
+    d.innerHTML=`<div class="av">YOU</div><div class="bwrap"><div class="bub">${inner}</div><div class="btime">${now()}</div></div>`;
+  } else {
+    d.className='msg ai';
+    const rt = rawText||text;
+    let srcHtml='';
+    if(sources&&sources.length){
+      srcHtml='<div class="src-bar">';
+      sources.slice(0,3).forEach(s=>{ srcHtml+=`<a class="src-link" href="${s.url}" target="_blank">🔗 ${(s.title||'Source').slice(0,22)}</a>`; });
+      srcHtml+='</div>';
+    }
+    // Action buttons: Copy + Share
+    const actHtml=`<div class="msg-actions">
+      <button class="act-btn" onclick="copyText(this.closest('.msg').querySelector('.bub').innerHTML)">📋 Copy</button>
+      <button class="act-btn" onclick="shareText(this.closest('.msg').querySelector('.bub').innerHTML)">📤 Share</button>
+    </div>`;
+    d.innerHTML=`<div class="av">FAI</div><div class="bwrap"><div class="bub">${fmt(text)}</div>${srcHtml}${actHtml}<div class="btime">${now()}</div></div>`;
+  }
+  c.appendChild(d); c.scrollTop=c.scrollHeight;
+}
+
+function addTyp(){
+  const boot=document.getElementById('boot'); if(boot) boot.remove();
+  const c=document.getElementById('chat'), d=document.createElement('div');
+  d.id='typ'; d.className='msg ai typing';
+  d.innerHTML='<div class="av">FAI</div><div class="bwrap"><div class="bub"><div class="tdots"><span class="td"></span><span class="td"></span><span class="td"></span></div></div></div>';
+  c.appendChild(d); c.scrollTop=c.scrollHeight;
+}
+function rmTyp(){ const e=document.getElementById('typ'); if(e) e.remove(); }
+
+/* ── TAVILY NEWS SEARCH ── */
+async function searchNews(query){
+  const res=await fetch('https://api.tavily.com/search',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({ api_key:TAVILY_KEY, query: query + ' ' + new Date().getFullYear(), search_depth:'advanced', include_answer:true, max_results:7, include_raw_content:false })
+  });
+  if(!res.ok) throw new Error('News search error');
+  return await res.json();
+}
+
+/* ── GROQ CHAT ── */
+async function callGroq(txt){
+  const messages=[{role:'system',content:SYSTEM},...hist.slice(-12),{role:'user',content:txt}];
+  const res=await fetch(GROQ_URL,{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},
+    body:JSON.stringify({model:CHAT_MODEL,messages,max_tokens:1024,temperature:0.7})
+  });
+  if(res.status===429||res.status===503) throw new Error('QUOTA');
+  if(!res.ok){ const e=await res.text(); throw new Error('Error: '+e.slice(0,100)); }
+  const d=await res.json();
+  return d.choices[0].message.content;
+}
+
+/* ── GROQ VISION ── */
+async function callGroqVision(txt,imgSrc){
+  const b64=imgSrc.split(',')[1];
+  const mime=(imgSrc.match(/data:([^;]+);/)||[])[1]||'image/jpeg';
+  const messages=[{role:'user',content:[
+    {type:'text',text:(txt||'Is document/image mein kya likha hai? Seedha Hindi mein point-wise batao.')+' (Hindi mein jawab do, tum FAUJI AI ho)'},
+    {type:'image_url',image_url:{url:'data:'+mime+';base64,'+b64}}
+  ]}];
+  const res=await fetch(GROQ_URL,{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},
+    body:JSON.stringify({model:VIS_MODEL,messages,max_tokens:1024})
+  });
+  if(!res.ok) return await callGeminiVision(txt,imgSrc);
+  const d=await res.json();
+  return d.choices[0].message.content;
+}
+
+/* ── GEMINI FALLBACK ── */
+async function callGemini(txt){
+  const contents=[];
+  hist.slice(-12).forEach(m=>contents.push({role:m.role==='assistant'?'model':'user',parts:[{text:m.content}]}));
+  contents.push({role:'user',parts:[{text:txt}]});
+  const body={system_instruction:{parts:[{text:SYSTEM}]},contents,generationConfig:{temperature:0.7,maxOutputTokens:1024}};
+  const res=await fetch(GEM_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(!res.ok){ const e=await res.text(); throw new Error('Gemini '+res.status+': '+e.slice(0,80)); }
+  const d=await res.json();
+  return d?.candidates?.[0]?.content?.parts?.[0]?.text||'Jawab nahi aaya.';
+}
+async function callGeminiVision(txt,imgSrc){
+  const b64=imgSrc.split(',')[1];
+  const mime=(imgSrc.match(/data:([^;]+);/)||[])[1]||'image/jpeg';
+  const contents=[{role:'user',parts:[{inline_data:{mime_type:mime,data:b64}},{text:txt||'Is image mein kya hai? Hindi mein batao.'}]}];
+  const body={system_instruction:{parts:[{text:SYSTEM}]},contents,generationConfig:{temperature:0.7,maxOutputTokens:1024}};
+  const res=await fetch(GEM_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(!res.ok){ const e=await res.text(); throw new Error('Vision error: '+e.slice(0,80)); }
+  const d=await res.json();
+  return d?.candidates?.[0]?.content?.parts?.[0]?.text||'Jawab nahi aaya.';
+}
+
+/* ── MAIN SEND ── */
+async function go(){
+  const inp=document.getElementById('mi');
+  const txt=inp.value.trim();
+  if(!txt&&!pendingImg) return;
+  const btn=document.getElementById('sb'); btn.disabled=true;
+  const img=pendingImg;
+  addMsg('user',txt,img,null);
+  inp.value=''; inp.style.height='auto';
+  removeImg();
+  addTyp();
+  let reply='',sources=null;
+  try{
+    if(img){
+      reply=await callGroqVision(txt,img);
+    } else if(isNews(txt)){
+      // Add current year to make search fresh
+      const currentYear = new Date().getFullYear();
+      const searchQ = txt + ' ' + currentYear;
+      const nd=await searchNews(searchQ);
+      let ctx='';
+      if(nd.answer) ctx+='LIVE SUMMARY: '+nd.answer+'\n\n';
+      nd.results.forEach((r,i)=>{
+        ctx+=`KHABAR ${i+1}: ${r.title}\n${(r.content||'').slice(0,400)}\n\n`;
+      });
+      const newsSystem=`Tum FAUJI AI ho. Neeche LIVE internet se laayi gayi REAL aaj ki khabrein hain. SIRF inhi khabrein ke aadhar par seedha HINDI mein jawab do. Apni purani training ki knowledge BILKUL mat use karo - woh outdated hai. Jo neeche likha hai wahi aaj ki sachchi khabar hai. Koi source URL mat likho. br tag mat use karo. Point-wise seedha batao.`;
+      const np=ctx+'\nUser sawaal: "'+txt+'"\n\nSirf upar ke LIVE results se jawab do.';
+      const newsMessages=[
+        {role:'system', content: newsSystem},
+        {role:'user', content: np}
+      ];
+      const nres=await fetch(GROQ_URL,{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},
+        body:JSON.stringify({model:CHAT_MODEL, messages:newsMessages, max_tokens:1024, temperature:0.2})
+      });
+      if(nres.ok){
+        const ndd=await nres.json();
+        reply=ndd.choices[0].message.content;
+      } else {
+        const gc=[{role:'user',parts:[{text:newsSystem+'\n\n'+np}]}];
+        const gr=await fetch(GEM_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:gc,generationConfig:{temperature:0.2,maxOutputTokens:1024}})});
+        const gd=await gr.json();
+        reply=gd?.candidates?.[0]?.content?.parts?.[0]?.text||'Khabar nahi mili.';
+      }
+      sources=nd.results;
+    } else {
+      try{ reply=await callGroq(txt); }
+      catch(e){ if(e.message==='QUOTA') reply=await callGemini(txt); else throw e; }
+    }
+    hist.push({role:'user',content:txt||'[image]'});
+    hist.push({role:'assistant',content:reply});
+    rmTyp();
+    addMsg('ai',reply,null,sources);
+  } catch(err){
+    rmTyp();
+    const c=document.getElementById('chat'),d=document.createElement('div');
+    d.className='msg ai';
+    d.innerHTML='<div class="av" style="color:var(--red);border-color:var(--red);">ERR</div><div class="bwrap"><div class="bub errbub">⚠ '+err.message.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</div></div>';
+    c.appendChild(d);
+  }
+  btn.disabled=false;
+  document.getElementById('chat').scrollTop=9999;
+}
+</script>
+</body>
+</html>
