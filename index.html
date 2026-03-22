@@ -136,7 +136,7 @@ header{position:relative;z-index:10;background:linear-gradient(180deg,rgba(16,22
     <div class="ibox">
       <button class="att" onclick="document.getElementById('fi').click()">&#128206;</button>
       <input id="fi" type="file" accept="image/*" onchange="onFile(event)" style="display:none"/>
-      <textarea id="mi" spellcheck="true" autocorrect="on" autocomplete="on" rows="1" oninput="ar(this)" onkeydown="hk(event)" placeholder="Army, News, Exam, Medical, World - kuch bhi pucho... (Shift+Enter = new line)"></textarea>
+      <textarea id="mi" rows="1" spellcheck="true" autocorrect="on" autocomplete="on" enterkeyhint="send" inputmode="text" placeholder="Kuch bhi pucho... (New line ke liye Shift+Enter dabao)"></textarea></textarea>
       <button id="vbtn" onclick="startVoice()">&#127908;</button>
     </div>
     <button id="sb" onclick="go()">&#10148;</button>
@@ -176,7 +176,16 @@ function isI(t){var l=t.toLowerCase();return IKW.some(function(w){return l.index
 function toast(m,d){var e=document.getElementById('toast');e.textContent=m;e.style.display='block';setTimeout(function(){e.style.display='none';},d||2500);}
 function nowT(){var d=new Date();return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}
 function ar(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,88)+'px';}
-function hk(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();go();}}
+function hk(e){
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();go();}
+}
+// Mobile Enter key fix
+var miEl=document.getElementById('mi');
+if(miEl){
+  miEl.addEventListener('keydown',function(e){
+    if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();go();}
+  });
+}
 function clr(){hist=[];var c=document.getElementById('chat');c.innerHTML='';var d=document.createElement('div');d.id='boot';d.style.cssText='display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:20px;flex:1;width:100%;min-height:100%';d.innerHTML='<div style="font-size:36px;font-weight:900;color:#f0c040;letter-spacing:6px">FAUJI AI</div><div style="font-size:11px;color:#7a7a5a;margin-top:8px">Ready. Jai Hind!</div>';c.appendChild(d);}
 function rmImg(){pendImg=null;document.getElementById('pw').style.display='none';document.getElementById('pi').src='';}
 function onFile(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){pendImg=ev.target.result;document.getElementById('pi').src=pendImg;document.getElementById('pw').style.display='block';toast('File attached!');};r.readAsDataURL(f);e.target.value='';}
@@ -184,11 +193,56 @@ function q(t){document.getElementById('mi').value=t;go();}
 function extractSugg(txt){var suggs=[];var re=/\[SUGG\d:([^\]]+)\]/g;var m;while((m=re.exec(txt))!==null){suggs.push(m[1].trim());}return suggs;}
 function addSuggBar(suggs,bw){if(!suggs||!suggs.length)return;var bar=document.createElement('div');bar.style.cssText='display:flex;gap:6px;flex-wrap:wrap;margin-top:8px';suggs.forEach(function(s){var btn=document.createElement('button');btn.style.cssText='padding:6px 12px;background:rgba(122,184,64,.12);border:1px solid rgba(122,184,64,.5);border-radius:16px;color:#7ab840;font-size:12px;cursor:pointer;font-family:Arial,sans-serif;text-align:left';btn.textContent=s;btn.onclick=function(){q(s);};bar.appendChild(btn);});bw.appendChild(bar);}
 function fmt(r){r=r.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');r=r.replace(/\[SUGG\d:[^\]]*\]/g,'');r=r.replace(/\*\*([^*]+)\*\*/g,'<strong style="color:#f0c040">$1</strong>');r=r.replace(/\*([^*]+)\*/g,'<em style="color:#c8e87a">$1</em>');r=r.replace(/^###? (.+)$/gm,'<strong style="font-size:15px;color:#f0c040;display:block;margin:6px 0 2px">$1</strong>');r=r.replace(/\n/g,'<br>');return r;}
-function plain(h){return h.replace(/<br[^>]*>/gi,'\n').replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>');}  
+function plain(h){
+  var t=h;
+  t=t.replace(/<b[^>]*>(.*?)<\/b>/gi,'**$1**');
+  t=t.replace(/<strong[^>]*>(.*?)<\/strong>/gi,'**$1**');
+  t=t.replace(/<i[^>]*>(.*?)<\/i>/gi,'_$1_');
+  t=t.replace(/<h[1-6][^>]*>(.*?)<\/h[1-6]>/gi,'\n## $1\n');
+  t=t.replace(/<li[^>]*>(.*?)<\/li>/gi,'- $1\n');
+  t=t.replace(/<br[^>]*>/gi,'\n');
+  t=t.replace(/<[^>]+>/g,'');
+  t=t.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&nbsp;/g,' ');
+  return t.trim();
+}
 function cpTxt(h){var p=plain(h);if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(p).then(function(){toast('Copied!');}).catch(function(){fbCp(p);});}else fbCp(p);}
 function fbCp(t){var a=document.createElement('textarea');a.value=t;a.style.cssText='position:fixed;opacity:0';document.body.appendChild(a);a.select();document.execCommand('copy');document.body.removeChild(a);toast('Copied!');}
 function shTxt(h){var p=plain(h);if(navigator.share)navigator.share({title:'FAUJI AI',text:p}).catch(function(){});else{cpTxt(h);toast('Copied!');}} 
-function mkPDF(rt){try{var c=plain(rt);var pw=window.open('','_blank');if(!pw){toast('Popup allow karo!');return;}var d=new Date().toLocaleDateString('en-IN');pw.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>FAUJI AI</title><style>body{font-family:Arial;margin:0;background:#fff;color:#000}.h{background:#0d1105;color:#f0c040;text-align:center;padding:16px}.h h1{font-size:26px;margin:0;letter-spacing:6px}.t{height:5px;background:linear-gradient(90deg,#FF9933 33%,#fff 33% 66%,#138808 66%)}.b{padding:22px 30px}.tx{white-space:pre-wrap;font-size:13px;line-height:1.9}.ft{text-align:center;font-size:9px;color:#999;padding:12px}.np{text-align:center;padding:16px;background:#f0f0f0}@media print{.np{display:none}}</style></head><body><div class="h"><h1>FAUJI AI</h1><p>faujiai.in</p></div><div class="t"></div><div class="b"><div style="padding-bottom:8px;border-bottom:2px solid #d4a017;margin-bottom:18px;font-weight:900;color:#3a5018">FAUJI AI | '+d+'</div><div class="tx">'+c+'</div></div><div class="ft">faujiai.in | Jai Hind!</div><div class="np"><button onclick="window.print()" style="padding:12px 35px;background:#3a5018;color:#f0c040;border:none;border-radius:8px;font-size:15px;cursor:pointer;margin-right:8px">Print PDF</button><button onclick="window.close()" style="padding:10px 20px;background:#888;color:#fff;border:none;border-radius:8px;cursor:pointer">Close</button></div></body></html>');pw.document.close();toast('PDF window open!');}catch(e){toast('PDF Error!');}}
+function mkPDF(rt){
+  try{
+    var c=plain(rt);
+    var blob=new Blob([
+      '<!DOCTYPE html><html><head><meta charset="UTF-8">'+
+      '<style>'+
+      'body{font-family:Arial,sans-serif;margin:20px;color:#000;font-size:13px;line-height:1.8}'+
+      'h1{font-size:26px;color:#d4a017;text-align:center;letter-spacing:4px;margin:0}'+
+      'h2{font-size:14px;color:#b8985a;text-align:center;margin:4px 0 0}'+
+      '.tri{height:5px;background:linear-gradient(90deg,#FF9933 33%,#fff 33% 66%,#138808 66%);margin:8px 0}'+
+      '.hdr{background:#0d1105;padding:16px;text-align:center}'+
+      '.tbar{display:flex;justify-content:space-between;padding-bottom:8px;border-bottom:2px solid #d4a017;margin-bottom:18px;font-weight:bold;color:#3a5018}'+
+      '.content{white-space:pre-wrap;font-size:13px;line-height:1.9}'+
+      '.footer{text-align:center;font-size:9px;color:#999;padding:12px;border-top:1px solid #eee;margin-top:20px}'+
+      '</style></head><body>'+
+      '<div class="hdr"><h1>FAUJI AI</h1><h2>Design by Hav SK Singh | faujiai.in</h2></div>'+
+      '<div class="tri"></div>'+
+      '<div style="padding:22px 30px">'+
+      '<div class="tbar"><span>FAUJI AI Document</span><span>'+new Date().toLocaleDateString('en-IN')+'</span></div>'+
+      '<div class="content">'+c+'</div>'+
+      '</div>'+
+      '<div class="footer">FAUJI AI | faujiai.in | Jai Hind!</div>'+
+      '</body></html>'
+    ],{type:'text/html'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');
+    a.href=url;
+    a.download='FAUJI-AI-'+Date.now()+'.html';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){URL.revokeObjectURL(url);},1000);
+    toast('File download ho rahi hai! Browser mein Print > Save as PDF karo.');
+  }catch(e){toast('Error: '+e.message);}
+}
 function addMsg(role,txt,img,srcs,rt){var bt=document.getElementById('boot');if(bt)bt.remove();var c=document.getElementById('chat');var d=document.createElement('div');if(role==='u'){d.className='msg u';var av=document.createElement('div');av.className='av';av.textContent='YOU';var bw=document.createElement('div');bw.className='bw';var bub=document.createElement('div');bub.className='bub';var inn='';if(img)inn+='<img class="uimg" src="'+img+'" alt=""/>';if(txt)inn+=txt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');bub.innerHTML=inn;var bt2=document.createElement('div');bt2.className='bt';bt2.textContent=nowT();bw.appendChild(bub);bw.appendChild(bt2);d.appendChild(av);d.appendChild(bw);}else{d.className='msg a';var suggs=extractSugg(rt||txt||'');var av2=document.createElement('div');av2.className='av';av2.textContent='FAI';var bw2=document.createElement('div');bw2.className='bw';var bub2=document.createElement('div');bub2.className='bub';bub2.innerHTML=fmt(txt);var ab=document.createElement('div');ab.className='ab';var cp=document.createElement('button');cp.innerHTML='Copy';cp.onclick=function(){cpTxt(bub2.innerHTML);};var sh=document.createElement('button');sh.innerHTML='Share';sh.onclick=function(){shTxt(bub2.innerHTML);};ab.appendChild(cp);ab.appendChild(sh);if(rt&&rt.length>150){var pb=document.createElement('button');pb.textContent='PDF';var captRt=rt;pb.onclick=function(){mkPDF(captRt);};ab.appendChild(pb);}var bt3=document.createElement('div');bt3.className='bt';bt3.textContent=nowT();bw2.appendChild(bub2);bw2.appendChild(ab);bw2.appendChild(bt3);addSuggBar(suggs,bw2);d.appendChild(av2);d.appendChild(bw2);}c.appendChild(d);setTimeout(function(){c.scrollTop=c.scrollHeight;},80);return d;}
 function addStream(){var bt=document.getElementById('boot');if(bt)bt.remove();var c=document.getElementById('chat');var d=document.createElement('div');d.className='msg a';var av=document.createElement('div');av.className='av';av.textContent='FAI';var bw=document.createElement('div');bw.className='bw';var bub=document.createElement('div');bub.className='bub stream-cursor';bw.appendChild(bub);d.appendChild(av);d.appendChild(bw);c.appendChild(d);setTimeout(function(){c.scrollTop=c.scrollHeight;},50);return {bub:bub,d:d,bw:bw};}
 function finalStream(obj,full,srcs){var bub=obj.bub,d=obj.d,bw=obj.bw;if(!bub||!d)return;bub.classList.remove('stream-cursor');bub.innerHTML=fmt(full);var suggs=extractSugg(full);if(srcs&&srcs.length){var sc=document.createElement('div');sc.style.cssText='display:flex;flex-wrap:wrap;gap:5px;margin-top:5px';for(var i=0;i<Math.min(3,srcs.length);i++){var a=document.createElement('a');a.href=srcs[i].url;a.target='_blank';a.style.cssText='font-size:10px;padding:2px 8px;background:rgba(212,160,23,.1);border:1px solid rgba(212,160,23,.3);border-radius:10px;color:#f0c040;text-decoration:none';a.textContent=(srcs[i].title||'').slice(0,24);sc.appendChild(a);}bw.appendChild(sc);}var ab=document.createElement('div');ab.className='ab';var cp=document.createElement('button');cp.textContent='Copy';cp.onclick=function(){cpTxt(bub.innerHTML);};var sh=document.createElement('button');sh.textContent='Share';sh.onclick=function(){shTxt(bub.innerHTML);};ab.appendChild(cp);ab.appendChild(sh);if(full&&full.length>150){var pb=document.createElement('button');pb.textContent='PDF';var captFull=full;pb.onclick=function(){mkPDF(captFull);};ab.appendChild(pb);}var bt4=document.createElement('div');bt4.className='bt';bt4.textContent=nowT();bw.appendChild(ab);bw.appendChild(bt4);addSuggBar(suggs,bw);setTimeout(function(){document.getElementById('chat').scrollTop=9999;},80);}
