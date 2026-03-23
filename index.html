@@ -228,21 +228,17 @@ function addSugg(bw,txt){var s=getSugg(txt);var div=document.createElement('div'
 
 function fmt(r){
   r=r.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  r=r.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
-  r=r.replace(/\*([^*
-]+)\*/g,'<em>$1</em>');
+  r=r.replace(/[*][*](.+?)[*][*]/g,'<strong>$1</strong>');
+  r=r.replace(/[*]([^*]+)[*]/g,'<em>$1</em>');
   r=r.replace(/^### (.+)$/gm,'<h3>$1</h3>');
   r=r.replace(/^## (.+)$/gm,'<h2>$1</h2>');
   r=r.replace(/^# (.+)$/gm,'<h1>$1</h1>');
   r=r.replace(/^- (.+)$/gm,'<li>$1</li>');
-  r=r.replace(/`([^`
-]+)`/g,'<code>$1</code>');
-  r=r.replace(/
-/g,'<br>');
+  r=r.replace(/`([^`]+)`/g,'<code>$1</code>');
+  r=r.split('\n').join('<br>');
   return r;
 }
-function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/
-/g,'<br>');}
+function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').split('\n').join('<br>');}
 function plain(h){return h.replace(/<br[^>]*>/gi,'\n').replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>');}
 function cpTxt(h){var p=plain(h);if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(p).then(function(){toast('Copied!');}).catch(function(){fbCp(p);});}else fbCp(p);}
 function fbCp(t){var a=document.createElement('textarea');a.value=t;a.style.cssText='position:fixed;opacity:0';document.body.appendChild(a);a.select();document.execCommand('copy');document.body.removeChild(a);toast('Copied!');}
