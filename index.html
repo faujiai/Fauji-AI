@@ -322,8 +322,19 @@ function addTyp(){
 function rmTyp(){var e=document.getElementById('typ');if(e)e.remove();}
 function speak(t){if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang='en-IN';u.rate=0.85;var vs=speechSynthesis.getVoices();var v=vs.find(function(x){return x.lang==='en-IN';})||vs.find(function(x){return x.lang.startsWith('en');})||null;if(v)u.voice=v;speechSynthesis.speak(u);}
 function startApp(){if(_started)return;_started=true;var sp=document.getElementById('splash');if(sp){sp.style.opacity='0';setTimeout(function(){if(sp.parentNode)sp.parentNode.removeChild(sp);},500);}setTimeout(function(){speak('Welcome to Fauji AI. Jai Hind!');},300);}
-document.getElementById('splash').addEventListener('click',startApp);
-document.getElementById('tbtn').addEventListener('click',function(e){e.stopPropagation();startApp();});
+(function(){
+  var sp=document.getElementById('splash');
+  var tb=document.getElementById('tbtn');
+  function openApp(e){if(e)e.preventDefault();startApp();}
+  if(sp){
+    sp.addEventListener('click',openApp);
+    sp.addEventListener('touchend',openApp,{passive:false});
+  }
+  if(tb){
+    tb.addEventListener('click',function(e){e.stopPropagation();openApp(e);});
+    tb.addEventListener('touchend',function(e){e.stopPropagation();openApp(e);},{passive:false});
+  }
+})();
 function startVoice(){var SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){toast('Voice ke liye Chrome use karo');return;}if(listening){if(recog)recog.stop();return;}if(location.protocol!=='https:'&&location.hostname!=='localhost'){toast('Voice sirf faujiai.in par kaam karta hai');return;}try{recog=new SR();recog.lang='hi-IN';recog.interimResults=false;recog.onstart=function(){listening=true;document.getElementById('vbtn').classList.add('on');document.getElementById('vs').style.display='inline';};recog.onresult=function(e){var t=e.results[0][0].transcript;document.getElementById('mi').value=t;ar(document.getElementById('mi'));setTimeout(go,500);};recog.onerror=function(e){listening=false;document.getElementById('vbtn').classList.remove('on');document.getElementById('vs').style.display='none';if(e.error==='not-allowed')toast('Lock icon > Mic > Allow karo',5000);else toast('Voice error: '+e.error);};recog.onend=function(){listening=false;document.getElementById('vbtn').classList.remove('on');document.getElementById('vs').style.display='none';};recog.start();}catch(e){toast('Voice error: '+e.message);}}
 document.getElementById('mi').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();addNL();}});
 async function callGroq(msgs){for(var i=0;i<GK.length;i++){try{var r=await fetch(GU,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+getGK()},body:JSON.stringify({model:CM,messages:msgs,max_tokens:2500,temperature:0.7})});if(r.status===429||r.status===503){coolG();continue;}if(!r.ok)continue;var d=await r.json();return d.choices[0].message.content;}catch(e){coolG();}}throw new Error('QUOTA');}
