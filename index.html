@@ -506,28 +506,41 @@ async function go(){
       mkTyp();
       var desc=txt;
       var imgWords=['image banao','photo banao','picture banao','tasveer','draw karo','image chahiye','photo chahiye','generate image','create image','poster banao','logo banao','wallpaper','sketch'];
-      imgWords.forEach(function(w){desc=desc.toLowerCase().indexOf(w)>=0?desc.replace(new RegExp(w,'gi'),''):desc;});
+      for(var iw=0;iw<imgWords.length;iw++){
+        var re2=new RegExp(imgWords[iw],'gi');
+        desc=desc.replace(re2,'');
+      }
       desc=desc.trim()||txt;
-      var style='high quality detailed realistic 4k';
-      var l2=(desc||txt).toLowerCase();
-      if(l2.indexOf('army')>=0)style='indian army military patriotic dramatic lighting';
-      else if(l2.indexOf('cartoon')>=0)style='cartoon colorful animated';
-      else if(l2.indexOf('logo')>=0)style='professional logo design clean vector minimal';
-      else if(l2.indexOf('poster')>=0)style='professional poster bold typography';
-      var imgUrl='https://image.pollinations.ai/prompt/'+encodeURIComponent(desc+', '+style)+'?width=512&height=512&nologo=true&seed='+Math.floor(Math.random()*99999);
+      var style2='high quality detailed realistic 4k';
+      var dl=desc.toLowerCase();
+      if(dl.indexOf('army')>=0)style2='indian army military patriotic dramatic lighting';
+      else if(dl.indexOf('cartoon')>=0)style2='cartoon colorful animated';
+      else if(dl.indexOf('logo')>=0)style2='professional logo design clean vector minimal';
+      else if(dl.indexOf('poster')>=0)style2='professional poster bold typography';
+      var imgUrl='https://image.pollinations.ai/prompt/'+encodeURIComponent(desc+' '+style2)+'?width=512&height=512&nologo=true&seed='+Math.floor(Math.random()*99999);
       rmTyp();
       var bt2=document.getElementById('boot');if(bt2)bt2.remove();
       var c2=document.getElementById('chat');
-      var d2=document.createElement('div');d2.className='msg a';
+      var dimg=document.createElement('div');dimg.className='msg a';
       var av2=document.createElement('div');av2.className='av';av2.textContent='FAI';
       var bw2=document.createElement('div');bw2.className='bw';
       var bub2=document.createElement('div');bub2.className='bub';
-      bub2.innerHTML='Image generate ho rahi hai...<br><img style="max-width:100%;border-radius:10px;margin-top:8px;border:2px solid #d4a017;min-height:80px;background:rgba(0,0,0,.3)" src="'+imgUrl+'" onload="this.previousSibling.textContent='Done!';document.getElementById('chat').scrollTop=9999" onerror="this.style.display='none';this.parentNode.innerHTML+='<br>Image load nahi hui. Dobara try karo.'" alt="Generated"/><br><a href="'+imgUrl+'" target="_blank" style="font-size:11px;color:#d4a017">Full size dekho</a>';
+      var loadTxt=document.createElement('div');loadTxt.textContent='Image generate ho rahi hai...';
+      var imgEl=document.createElement('img');
+      imgEl.src=imgUrl;
+      imgEl.style.cssText='max-width:100%;border-radius:10px;margin-top:8px;border:2px solid #d4a017;min-height:80px;display:block';
+      imgEl.alt='Generated';
+      imgEl.onload=function(){loadTxt.textContent='Image ready!';c2.scrollTop=c2.scrollHeight;};
+      imgEl.onerror=function(){loadTxt.textContent='Image load nahi hui. Dobara try karo.';this.style.display='none';};
+      var linkEl=document.createElement('a');
+      linkEl.href=imgUrl;linkEl.target='_blank';linkEl.textContent='Full size dekho';linkEl.style.cssText='font-size:11px;color:#d4a017;display:block;margin-top:4px';
       var bt3=document.createElement('div');bt3.className='bt';bt3.textContent=nowT();
-      bw2.appendChild(bub2);bw2.appendChild(bt3);d2.appendChild(av2);d2.appendChild(bw2);
-      c2.appendChild(d2);c2.scrollTop=9999;
+      bub2.appendChild(loadTxt);bub2.appendChild(imgEl);bub2.appendChild(linkEl);
+      bw2.appendChild(bub2);bw2.appendChild(bt3);
+      dimg.appendChild(av2);dimg.appendChild(bw2);
+      c2.appendChild(dimg);c2.scrollTop=9999;
       reply='[Image: '+desc+']';
-    }else if(isN(txt)){
+}else if(isN(txt)){
       mkTyp();
       var nd=await sNews(txt);
       var ctx='';
