@@ -504,9 +504,12 @@ async function go(){
       btn.disabled=false;return;
     }else if(isI(txt)){
       mkTyp();
-      var desc=txt.replace(/image banao|photo banao|picture banao|tasveer|draw karo|image chahiye|photo chahiye|generate image|create image|poster banao|logo banao|wallpaper|sketch/gi,'').trim()||txt;
+      var desc=txt;
+      var imgWords=['image banao','photo banao','picture banao','tasveer','draw karo','image chahiye','photo chahiye','generate image','create image','poster banao','logo banao','wallpaper','sketch'];
+      imgWords.forEach(function(w){desc=desc.toLowerCase().indexOf(w)>=0?desc.replace(new RegExp(w,'gi'),''):desc;});
+      desc=desc.trim()||txt;
       var style='high quality detailed realistic 4k';
-      var l2=desc.toLowerCase();
+      var l2=(desc||txt).toLowerCase();
       if(l2.indexOf('army')>=0)style='indian army military patriotic dramatic lighting';
       else if(l2.indexOf('cartoon')>=0)style='cartoon colorful animated';
       else if(l2.indexOf('logo')>=0)style='professional logo design clean vector minimal';
