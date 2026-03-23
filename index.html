@@ -542,6 +542,18 @@ async function go(){
   document.getElementById('chat').scrollTop=9999;
 }
 
+// Expose functions to global scope for HTML onclick attributes
+window.setMode = setMode;
+window.q = q;
+window.go = go;
+window.clr = clr;
+window.addNL = addNL;
+window.rmImg = rmImg;
+window.startVoice = startVoice;
+window.mkPDF = mkPDF;
+window.cpTxt = cpTxt;
+window.shTxt = shTxt;
+
 })();
 </script>
 </body>
