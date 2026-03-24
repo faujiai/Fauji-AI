@@ -350,13 +350,46 @@ document.getElementById('mi').addEventListener('keydown',function(e){
   if(e.key==='Enter'){e.preventDefault();addNL();}
 });
 
+function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
 async function cGroq(msgs){
-  for(var i=0;i<GK.length;i++){
+  for(var i=0;i<GK.length*2;i++){
     try{
       var r=await fetch(GU,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+gGK()},body:JSON.stringify({model:CM,messages:msgs,max_tokens:2500,temperature:0.7})});
-      if(r.status===429||r.status===503){cGK();continue;}if(!r.ok)continue;
-      var d=await r.json();return d.choices[0].message.content;
-    }catch(e){cGK();}
+      if(r.status===429||r.status===503){cGK();await sleep(800);continue;}if(!r.ok){cGK();continue;}
+      var d=await r.json();var t=d&&d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content;if(t)return t;cGK();
+    }catch(e){cGK();await sleep(500);}
+  }
+  throw new Error('QUOTA');
+}
+async function cOR(msgs){
+  for(var i=0;i<OM.length*OK.length*2;i++){
+    try{
+      var r=await fetch(OU,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+gOK(),'HTTP-Referer':'https://faujiai.in','X-Title':'FAUJI AI'},body:JSON.stringify({model:gOM(),messages:msgs,max_tokens:2500,temperature:0.7})});
+      if(r.status===429||r.status===503){nOM();nOK();await sleep(1000);continue;}if(!r.ok){nOM();continue;}
+      var d=await r.json();var t=d&&d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content;
+      if(t)return t;nOM();
+    }catch(e){nOM();nOK();await sleep(500);}
+  }
+  throw new Error('Network issue. Ek baar aur try karo.');
+}
+async function gStream(msgs,onC){
+  for(var i=0;i<GK.length*2;i++){
+    try{
+      var r=await fetch(GU,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+gGK()},body:JSON.stringify({model:CM,messages:msgs,max_tokens:2500,temperature:0.7,stream:true})});
+      if(r.status===429||r.status===503){cGK();await sleep(800);continue;}if(!r.ok){cGK();continue;}
+      var reader=r.body.getReader(),dec=new TextDecoder(),full='';
+      while(true){
+        var res=await reader.read();if(res.done)break;
+        var lines=dec.decode(res.value).split('\n');
+        for(var j=0;j<lines.length;j++){
+          var l=lines[j].trim();
+          if(l.startsWith('data: ')&&l!=='data: [DONE]'){
+            try{var js2=JSON.parse(l.slice(6));var dt=js2.choices&&js2.choices[0]&&js2.choices[0].delta&&js2.choices[0].delta.content;if(dt){full+=dt;onC(full);}}catch(ex){}
+          }
+        }
+      }
+      if(full)return full;cGK();
+    }catch(e){cGK();await sleep(500);}
   }
   throw new Error('QUOTA');
 }
@@ -518,24 +551,30 @@ async function go(){
       var nMsgs=[{role:'system',content:'You are FAUJI AI. Use ONLY these live results. Reply in same language. Rewrite simple words with bullet points.'},{role:'user',content:ctx+'\nQuestion: '+txt}];
       rmTyp();
       var so=mkStream();
-      try{reply=await gStream(nMsgs,function(p){so.bub.innerHTML=fmt(p);document.getElementById('chat').scrollTop=9999;});}catch(ex){reply=await cOR(nMsgs);}
+      try{reply=await gStream(nMsgs,function(p){so.bub.innerHTML=fmt(p);document.getElementById('chat').scrollTop=9999;});}catch(ex){try{reply=await cOR(nMsgs);}catch(ex2){reply=await cOR(nMsgs);}}
       if(nd.results)srcs=nd.results;
       endStream(so,reply,srcs,txt);
     }else{
       var msgs=[{role:'system',content:sys}].concat(hist.slice(-16)).concat([{role:'user',content:txt}]);
       var so2=mkStream();
-      try{reply=await gStream(msgs,function(p){so2.bub.innerHTML=fmt(p);document.getElementById('chat').scrollTop=9999;});}catch(ex){reply=await cOR(msgs);}
+      try{reply=await gStream(msgs,function(p){so2.bub.innerHTML=fmt(p);document.getElementById('chat').scrollTop=9999;});}catch(ex){try{reply=await cOR(msgs);}catch(ex2){reply=await cOR(msgs);}}
       endStream(so2,reply,null,txt);
     }
     hist.push({role:'user',content:txt||'[image]'});
     hist.push({role:'assistant',content:reply});
   }catch(err){
     rmTyp();
+    // Auto-retry once silently before showing error
+    try{
+      var retryMsgs=[{role:'system',content:MODES[curMode]+'\n'+SYS}].concat(hist.slice(-10)).concat([{role:'user',content:txt||'[image]'}]);
+      var retryReply=await cOR(retryMsgs);
+      if(retryReply){makeMsg('a',retryReply,null,null,retryReply);hist.push({role:'user',content:txt||'[image]'});hist.push({role:'assistant',content:retryReply});btn.disabled=false;return;}
+    }catch(retryErr){}
     var ce=document.getElementById('chat');
     var de=document.createElement('div');de.className='msg a';
     var ave=document.createElement('div');ave.className='av';ave.style.color='#cc2200';ave.textContent='ERR';
     var bwe=document.createElement('div');bwe.className='bw';
-    var bube=document.createElement('div');bube.className='bub err';bube.textContent=err.message;
+    var bube=document.createElement('div');bube.className='bub err';bube.textContent='Thoda ruko aur dobara try karo. ('+err.message+')';
     bwe.appendChild(bube);de.appendChild(ave);de.appendChild(bwe);ce.appendChild(de);
   }
   btn.disabled=false;
