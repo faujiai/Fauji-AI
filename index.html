@@ -745,75 +745,47 @@ function detectQueryType(msgs){
 // MASTER AUTO-SWITCH with Smart Routing
 // ============================================================
 async function cAI(msgs,onC){
-  var qType=detectQueryType(msgs);
-  console.log('Query type:',qType);
-
-  // FAST queries → Groq (fastest) → Cerebras
-  if(qType==='fast'){
-    if(onC){try{return await gStream(msgs,onC);}catch(e){}}
-    else{try{return await cGroq(msgs);}catch(e){}}
-    try{var tc=await cCerebras(msgs);if(onC)onC(tc);return tc;}catch(e){}
-  }
-
-  // HIGH TRAFFIC / DEFAULT → Cerebras → Groq → OpenRouter
-  if(qType==='default'||qType==='fast'){
-    try{var tc2=await cCerebras(msgs);if(onC)onC(tc2);return tc2;}catch(e){}
-    if(onC){try{return await gStream(msgs,onC);}catch(e){}}
-    else{try{return await cGroq(msgs);}catch(e){}}
-  }
-
-  // LONG answers → Groq → DeepSeek → Cerebras
-  if(qType==='long'){
-    if(onC){try{return await gStream(msgs,onC);}catch(e){}}
-    else{try{return await cGroq(msgs);}catch(e){}}
-    try{var td=await cDeepSeek(msgs);if(onC)onC(td);return td;}catch(e){}
-    try{var tc3=await cCerebras(msgs);if(onC)onC(tc3);return tc3;}catch(e){}
-  }
-
-  // QUALITY needed → Gemini → Groq → DeepSeek
-  if(qType==='quality'){
-    try{var tg=await cGemini(msgs);if(onC)onC(tg);return tg;}catch(e){}
-    if(onC){try{return await gStream(msgs,onC);}catch(e){}}
-    else{try{return await cGroq(msgs);}catch(e){}}
-    try{var td2=await cDeepSeek(msgs);if(onC)onC(td2);return td2;}catch(e){}
-  }
-
-  // UNIVERSAL FALLBACK CHAIN
+  // Try each API one by one - no complex routing, just simple fallback chain
+  // 1. Groq (fastest, streaming)
   if(onC){try{return await gStream(msgs,onC);}catch(e){}}
   else{try{return await cGroq(msgs);}catch(e){}}
-  try{var tcf=await cCerebras(msgs);if(onC)onC(tcf);return tcf;}catch(e){}
-  // STAGE 2: Pollinations (trimmed system)
+
+  // 2. Cerebras (fast)
+  try{var r1=await cCerebras(msgs);if(onC)onC(r1);return r1;}catch(e){}
+
+  // 3. DeepSeek
+  try{var r2=await cDeepSeek(msgs);if(onC)onC(r2);return r2;}catch(e){}
+
+  // 4. Gemini
+  try{var r3=await cGemini(msgs);if(onC)onC(r3);return r3;}catch(e){}
+
+  // 5. OpenRouter
+  try{var r4=await cOR_inner(msgs);if(onC)onC(r4);return r4;}catch(e){}
+
+  // 6. Pollinations (free, trim system prompt so it doesn't reject)
   try{
-    var polMsgs=msgs.map(function(m){return m.role==='system'?{role:'system',content:m.content.slice(0,800)}:m;});
-    var pr=await fetch(PU,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'openai',messages:polMsgs,max_tokens:2000,temperature:0.7,private:true,seed:Math.floor(Math.random()*9999)})});
-    if(pr.ok){var pd=await pr.json();var pt=pd&&pd.choices&&pd.choices[0]&&pd.choices[0].message&&pd.choices[0].message.content;if(pt){if(onC)onC(pt);return pt;}}
-  }catch(pe){console.warn('Pollinations stage2 fail:',pe);}
-  // STAGE 3: Try DeepSeek
-  try{
-    var t=await cDeepSeek(msgs);
-    if(onC)onC(t);
-    return t;
+    var pm=msgs.map(function(m){
+      return m.role==='system'?{role:'system',content:m.content.slice(0,600)}:m;
+    });
+    var pr=await fetch(PU,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'openai',messages:pm,max_tokens:2000,temperature:0.7,private:true})});
+    if(pr.ok){
+      var pd=await pr.json();
+      var pt=pd&&pd.choices&&pd.choices[0]&&pd.choices[0].message&&pd.choices[0].message.content;
+      if(pt){if(onC)onC(pt);return pt;}
+    }
   }catch(e){}
-  // STAGE 4: Try OpenRouter
+
+  // 7. Pollinations text endpoint (last resort)
   try{
-    var t2=await cOR_inner(msgs);
-    if(onC)onC(t2);
-    return t2;
+    var lmsg=msgs[msgs.length-1].content.slice(0,300);
+    var pr2=await fetch('https://text.pollinations.ai/'+encodeURIComponent(lmsg)+'?model=openai&private=true');
+    if(pr2.ok){var pt2=await pr2.text();if(pt2&&pt2.length>10){if(onC)onC(pt2);return pt2;}}
   }catch(e){}
-  // STAGE 5: Try Gemini
-  try{
-    var t3=await cGemini(msgs);
-    if(onC)onC(t3);
-    return t3;
-  }catch(e){}
-  // STAGE 6: Pollinations text endpoint retry
-  try{
-    var lm2=msgs[msgs.length-1].content.slice(0,500);
-    var pr2=await fetch('https://text.pollinations.ai/'+encodeURIComponent(lm2)+'?model=mistral&private=true');
-    if(pr2.ok){var pt2=await pr2.text();if(pt2&&pt2.length>5){if(onC)onC(pt2);return pt2;}}
-  }catch(pe2){}
-  console.error('FAUJI AI: All APIs failed');throw new Error('Sabhi servers busy. 2-3 minute baad try karo.');
+
+  throw new Error('Sabhi servers busy. 2-3 minute baad try karo.');
 }
+
 async function cGroq(msgs){
   for(var i=0;i<GK.length*2;i++){
     try{
@@ -927,6 +899,8 @@ async function go(){
   var txt=inp.value.trim();
   if(!txt&&!pendImg)return;
   var btn=document.getElementById('sb');btn.disabled=true;
+  // DEBUG: show what's being called
+  console.log('GO called, txt=',txt,'mode=',curMode);
   var img=pendImg;
   makeMsg('u',txt,img,null,null);
   inp.value='';inp.style.height='auto';
@@ -1023,13 +997,30 @@ async function go(){
       var nMsgs=[{role:'system',content:'You are FAUJI AI. Use ONLY these live results. Reply in same language. Rewrite simple words with bullet points.'},{role:'user',content:ctx+'\nQuestion: '+txt}];
       rmTyp();
       var so=mkStream();
-      try{reply=await cAI(nMsgs,function(p){so.bub.innerHTML=fmt(p);document.getElementById('chat').scrollTop=9999;});}catch(ex){reply='Server se jawab nahi mila. Dobara try karo.';}
+      try{
+      reply=await cAI(nMsgs,function(p){so.bub.innerHTML=fmt(p);document.getElementById('chat').scrollTop=9999;});
+    }catch(ex){
+      console.error('News cAI failed:',ex.message);
+      try{reply=await cAI(nMsgs,null);}catch(ex2){
+        console.error('News retry failed:',ex2.message);
+        reply='Server se jawab nahi mila. Dobara try karo.';
+      }
+    }
       if(nd.results)srcs=nd.results;
       endStream(so,reply,srcs,txt);
     }else{
       var msgs=[{role:'system',content:sys}].concat(hist.slice(-16)).concat([{role:'user',content:txt}]);
       var so2=mkStream();
-      try{reply=await cAI(msgs,function(p){so2.bub.innerHTML=fmt(p);document.getElementById('chat').scrollTop=9999;});}catch(ex){reply='Server se jawab nahi mila. Dobara try karo.';}
+      try{
+      reply=await cAI(msgs,function(p){so2.bub.innerHTML=fmt(p);document.getElementById('chat').scrollTop=9999;});
+    }catch(ex){
+      console.error('Main cAI failed:',ex.message);
+      // Retry without streaming - different code path
+      try{reply=await cAI(msgs,null);}catch(ex2){
+        console.error('Main retry failed:',ex2.message);
+        reply='Server se jawab nahi mila. Dobara try karo.';
+      }
+    }
       endStream(so2,reply,null,txt);
     }
     hist.push({role:'user',content:txt||'[image]'});
