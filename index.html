@@ -748,39 +748,44 @@ function detectQueryType(msgs){
 // MASTER AUTO-SWITCH with Smart Routing
 // ============================================================
 async function cAI(msgs,onC){
-  // Try each API one by one - no complex routing, just simple fallback chain
-  // 1. Groq (fastest, streaming)
-  if(onC){try{return await gStream(msgs,onC);}catch(e){}}
-  else{try{return await cGroq(msgs);}catch(e){}}
+  // Make fast version of msgs - trim system prompt for speed
+  var fastMsgs=msgs.map(function(m){
+    if(m.role!=='system')return m;
+    // Keep mode instructions (first 500 chars) + skip 28k army database
+    var s=m.content;
+    var armyIdx=s.indexOf('\\n\\nARMY DATABASE');
+    if(armyIdx>0)s=s.slice(0,armyIdx);
+    return {role:'system',content:s.slice(0,600)};
+  });
 
-  // 2. Cerebras (fast)
-  try{var r1=await cCerebras(msgs);if(onC)onC(r1);return r1;}catch(e){}
+  // 1. Groq streaming (fastest - 1-2 sec)
+  if(onC){try{return await gStream(fastMsgs,onC);}catch(e){}}
+  else{try{return await cGroq(fastMsgs);}catch(e){}}
 
-  // 3. DeepSeek
+  // 2. Cerebras (fast - 2-3 sec)
+  try{var r1=await cCerebras(fastMsgs);if(onC)onC(r1);return r1;}catch(e){}
+
+  // 3. DeepSeek with full context
   try{var r2=await cDeepSeek(msgs);if(onC)onC(r2);return r2;}catch(e){}
 
-  // 4. Gemini
+  // 4. Gemini with full context
   try{var r3=await cGemini(msgs);if(onC)onC(r3);return r3;}catch(e){}
 
-  // 5. OpenRouter
-  try{var r4=await cOR_inner(msgs);if(onC)onC(r4);return r4;}catch(e){}
+  // 5. OpenRouter with trimmed
+  try{var r4=await cOR_inner(fastMsgs);if(onC)onC(r4);return r4;}catch(e){}
 
-  // 6. Pollinations (free, trim system prompt so it doesn't reject)
+  // 6. Pollinations
   try{
-    var pm=msgs.map(function(m){
-      return m.role==='system'?{role:'system',content:m.content.slice(0,600)}:m;
-    });
     var acP=new AbortController();setTimeout(function(){acP.abort();},8000);
-    var pr=await fetch(PU,{method:'POST',signal:acP.signal,headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'openai',messages:pm,max_tokens:2000,temperature:0.7,private:true})});
-    if(pr.ok){
-      var pd=await pr.json();
+    var pr=await fetch(PU,{method:'POST',signal:acP.signal,
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'openai',messages:fastMsgs,max_tokens:2000,temperature:0.7,private:true})});
+    if(pr.ok){var pd=await pr.json();
       var pt=pd&&pd.choices&&pd.choices[0]&&pd.choices[0].message&&pd.choices[0].message.content;
-      if(pt){if(onC)onC(pt);return pt;}
-    }
+      if(pt){if(onC)onC(pt);return pt;}}
   }catch(e){}
 
-  // 7. Pollinations text endpoint (last resort)
+  // 7. Pollinations text
   try{
     var lmsg=msgs[msgs.length-1].content.slice(0,300);
     var pr2=await fetch('https://text.pollinations.ai/'+encodeURIComponent(lmsg)+'?model=openai&private=true');
@@ -828,7 +833,7 @@ async function gStream(msgs,onC){
     tried++;
     try{
       var ac=new AbortController();
-      var tid=setTimeout(function(){ac.abort();},5000); // 5 sec timeout
+      var tid=setTimeout(function(){ac.abort();},4000);
       var r=await fetch(GU,{method:'POST',signal:ac.signal,
         headers:{'Content-Type':'application/json','Authorization':'Bearer '+gGK()},
         body:JSON.stringify({model:CM,messages:msgs,max_tokens:8000,temperature:0.7,stream:true})});
