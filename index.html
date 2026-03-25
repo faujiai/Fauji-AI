@@ -693,7 +693,7 @@ async function cGemini(msgs){
     }
     var body={contents:parts};
     if(sysMsg)body.systemInstruction={parts:[{text:sysMsg}]};
-    body.generationConfig={maxOutputTokens:2500,temperature:0.7};
+    body.generationConfig={maxOutputTokens:8000,temperature:0.7};
     var r=await fetch(GEMU+GEMK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     if(!r.ok)throw new Error('GEM'+r.status);
     var d=await r.json();
@@ -712,36 +712,42 @@ async function cAI(msgs,onC){
   } else {
     try{return await cGroq(msgs);}catch(e){}
   }
-  // STAGE 2: Try DeepSeek
+  // STAGE 2: Pollinations (free, no key - immediate fallback)
+  try{
+    var pr=await fetch(PU,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'openai',messages:msgs,max_tokens:8000,temperature:0.7,private:true,seed:Math.floor(Math.random()*9999)})});
+    if(pr.ok){var pd=await pr.json();var pt=pd&&pd.choices&&pd.choices[0]&&pd.choices[0].message&&pd.choices[0].message.content;if(pt){if(onC)onC(pt);return pt;}}
+  }catch(pe){console.warn('Pollinations stage2 fail:',pe);}
+  // STAGE 3: Try DeepSeek
   try{
     var t=await cDeepSeek(msgs);
     if(onC)onC(t);
     return t;
   }catch(e){}
-  // STAGE 3: Try OpenRouter
+  // STAGE 4: Try OpenRouter
   try{
     var t2=await cOR_inner(msgs);
     if(onC)onC(t2);
     return t2;
   }catch(e){}
-  // STAGE 4: Try Gemini
+  // STAGE 5: Try Gemini
   try{
     var t3=await cGemini(msgs);
     if(onC)onC(t3);
     return t3;
   }catch(e){}
-  // STAGE 5: Pollinations (free, no key)
+  // STAGE 6: Pollinations text endpoint retry
   try{
-    var pr=await fetch(PU,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'openai',messages:msgs,max_tokens:8000,temperature:0.7,private:true,seed:Math.floor(Math.random()*9999)})});
-    if(pr.ok){var pd=await pr.json();var pt=pd&&pd.choices&&pd.choices[0]&&pd.choices[0].message&&pd.choices[0].message.content;if(pt){if(onC)onC(pt);return pt;}}
-  }catch(pe){}
-  throw new Error('Sabhi servers busy. 2-3 minute baad try karo.');
+    var lm=msgs[msgs.length-1].content;
+    var pr2=await fetch('https://text.pollinations.ai/'+encodeURIComponent(lm)+'?model=mistral&private=true');
+    if(pr2.ok){var pt2=await pr2.text();if(pt2&&pt2.length>5){if(onC)onC(pt2);return pt2;}}
+  }catch(pe2){}
+  console.error('FAUJI AI: All APIs failed');throw new Error('Sabhi servers busy. 2-3 minute baad try karo.');
 }
 async function cGroq(msgs){
   for(var i=0;i<GK.length*2;i++){
     try{
       var r=await fetch(GU,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+gGK()},body:JSON.stringify({model:CM,messages:msgs,max_tokens:8000,temperature:0.7})});
-      if(r.status===429||r.status===503){cGK();await sleep(800);continue;}if(!r.ok){cGK();continue;}
+      if(r.status===429||r.status===503||r.status===400||r.status===404){cGK();await sleep(800);continue;}if(!r.ok){cGK();continue;}
       var d=await r.json();var t=d&&d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content;if(t)return t;cGK();
     }catch(e){cGK();await sleep(500);}
   }
@@ -768,7 +774,7 @@ async function gStream(msgs,onC){
   for(var i=0;i<GK.length*2;i++){
     try{
       var r=await fetch(GU,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+gGK()},body:JSON.stringify({model:CM,messages:msgs,max_tokens:8000,temperature:0.7,stream:true})});
-      if(r.status===429||r.status===503){cGK();await sleep(800);continue;}if(!r.ok){cGK();continue;}
+      if(r.status===429||r.status===503||r.status===400||r.status===404){cGK();await sleep(800);continue;}if(!r.ok){cGK();continue;}
       var reader=r.body.getReader(),dec=new TextDecoder('utf-8',{fatal:false}),full='',buf='';
       while(true){
         var res=await reader.read();if(res.done)break;
@@ -946,13 +952,13 @@ async function go(){
       var nMsgs=[{role:'system',content:'You are FAUJI AI. Use ONLY these live results. Reply in same language. Rewrite simple words with bullet points.'},{role:'user',content:ctx+'\nQuestion: '+txt}];
       rmTyp();
       var so=mkStream();
-      try{reply=await cAI(nMsgs,function(p){so.bub.innerHTML=fmt(p);document.getElementById('chat').scrollTop=9999;});}catch(ex){try{reply=await cOR(nMsgs);}catch(ex2){reply=await cOR(nMsgs);}}
+      try{reply=await cAI(nMsgs,function(p){so.bub.innerHTML=fmt(p);document.getElementById('chat').scrollTop=9999;});}catch(ex){reply='Server se jawab nahi mila. Dobara try karo.';}
       if(nd.results)srcs=nd.results;
       endStream(so,reply,srcs,txt);
     }else{
       var msgs=[{role:'system',content:sys}].concat(hist.slice(-16)).concat([{role:'user',content:txt}]);
       var so2=mkStream();
-      try{reply=await cAI(msgs,function(p){so2.bub.innerHTML=fmt(p);document.getElementById('chat').scrollTop=9999;});}catch(ex){try{reply=await cOR(msgs);}catch(ex2){reply=await cOR(msgs);}}
+      try{reply=await cAI(msgs,function(p){so2.bub.innerHTML=fmt(p);document.getElementById('chat').scrollTop=9999;});}catch(ex){reply='Server se jawab nahi mila. Dobara try karo.';}
       endStream(so2,reply,null,txt);
     }
     hist.push({role:'user',content:txt||'[image]'});
@@ -962,7 +968,7 @@ async function go(){
     // Auto-retry once silently before showing error
     try{
       var retryMsgs=[{role:'system',content:MODES[curMode]+'\n'+SYS}].concat(hist.slice(-10)).concat([{role:'user',content:txt||'[image]'}]);
-      var retryReply=await cOR(retryMsgs);
+      var retryReply=await cAI(retryMsgs,null);
       if(retryReply){makeMsg('a',retryReply,null,null,retryReply);hist.push({role:'user',content:txt||'[image]'});hist.push({role:'assistant',content:retryReply});btn.disabled=false;return;}
     }catch(retryErr){}
     var ce=document.getElementById('chat');
