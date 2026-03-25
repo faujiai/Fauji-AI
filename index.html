@@ -714,7 +714,8 @@ async function cAI(msgs,onC){
   }
   // STAGE 2: Pollinations (free, no key - immediate fallback)
   try{
-    var pr=await fetch(PU,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'openai',messages:msgs,max_tokens:8000,temperature:0.7,private:true,seed:Math.floor(Math.random()*9999)})});
+    var polMsgs=msgs.map(function(m){return m.role==='system'?{role:'system',content:m.content.slice(0,800)}:m;});
+    var pr=await fetch(PU,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'openai',messages:polMsgs,max_tokens:2000,temperature:0.7,private:true,seed:Math.floor(Math.random()*9999)})});
     if(pr.ok){var pd=await pr.json();var pt=pd&&pd.choices&&pd.choices[0]&&pd.choices[0].message&&pd.choices[0].message.content;if(pt){if(onC)onC(pt);return pt;}}
   }catch(pe){console.warn('Pollinations stage2 fail:',pe);}
   // STAGE 3: Try DeepSeek
@@ -737,8 +738,8 @@ async function cAI(msgs,onC){
   }catch(e){}
   // STAGE 6: Pollinations text endpoint retry
   try{
-    var lm=msgs[msgs.length-1].content;
-    var pr2=await fetch('https://text.pollinations.ai/'+encodeURIComponent(lm)+'?model=mistral&private=true');
+    var lm2=msgs[msgs.length-1].content.slice(0,500);
+    var pr2=await fetch('https://text.pollinations.ai/'+encodeURIComponent(lm2)+'?model=mistral&private=true');
     if(pr2.ok){var pt2=await pr2.text();if(pt2&&pt2.length>5){if(onC)onC(pt2);return pt2;}}
   }catch(pe2){}
   console.error('FAUJI AI: All APIs failed');throw new Error('Sabhi servers busy. 2-3 minute baad try karo.');
@@ -774,7 +775,7 @@ async function gStream(msgs,onC){
   for(var i=0;i<GK.length*2;i++){
     try{
       var r=await fetch(GU,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+gGK()},body:JSON.stringify({model:CM,messages:msgs,max_tokens:8000,temperature:0.7,stream:true})});
-      if(r.status===429||r.status===503||r.status===400||r.status===404){cGK();await sleep(800);continue;}if(!r.ok){cGK();continue;}
+      if(!r.ok){console.warn('Groq stream fail:',r.status);cGK();await sleep(400);continue;}
       var reader=r.body.getReader(),dec=new TextDecoder('utf-8',{fatal:false}),full='',buf='';
       while(true){
         var res=await reader.read();if(res.done)break;
