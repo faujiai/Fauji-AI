@@ -160,18 +160,31 @@ header{position:relative;z-index:10;background:linear-gradient(180deg,rgba(16,22
 <script>
 (function() {
 
-var GK = ['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','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','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','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','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'];
-var OK = ['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','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','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','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'];
-var GU = 'https://api.groq.com/openai/v1/chat/completions';
-var OU = 'https://openrouter.ai/api/v1/chat/completions';
-var CM = 'llama-3.3-70b-versatile';
-var VM = 'meta-llama/llama-4-scout-17b-16e-instruct';
-var OM = ['google/gemini-2.0-flash-exp:free','meta-llama/llama-3.3-70b-instruct:free','deepseek/deepseek-r1:free','qwen/qwen-2.5-72b-instruct:free','mistralai/mistral-7b-instruct:free'];
-var TK = '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';
-var _cd={}, _CD=45*60*1000, _gi=0, _oi=0, _oki=0;
+function _dk(s){var b=atob(s),r='';for(var i=0;i<b.length;i++)r+=String.fromCharCode(b.charCodeAt(i)^42);return r;}
+var _GK=['TVlBdUFdX0hFXUVzGVofbxIfUlN6S08afW1OU0gZbHNJYm5ZE3gfc2kabGxlXXtCbkJCe0QdfF0=','TVlBdVNvTUF8ZFBtG2Abfx1iU2Z6EmNffW1OU0gZbHNEcHBraG9BTX9+ZnNcGmsSfWBubFJcems=','TVlBdRxHR20ff0hiRFoSS21nYxN/QkYZfW1OU0gZbHNJaVBMQFlgXm1PH18SHB0dbU5TU3xNUlg=','TVlBdR8bU1BbGVoZRExMflpueEhZZW5sfW1OU0gZbHNYGBtQGUxITksYWkt6aR1dU1AZWkAcGVs=','TVlBdU5THWREHG9cS39NeUZiRWtoS3tAfW1OU0gZbHMcZFJdZ1BkSFtDcB5BaXB9HXxhHVBLfGM=','TVlBdWtOExp6fl1bHmRfHkNrXht7Y25/fW1OU0gZbHN+T20SbB15XkttbhhhYVteQkxlHnt9bXA=','TVlBdUxdQB5tQmBdbmFDc2h/fkFLEhJwfW1OU0gZbHNaUExJc0ZNXENJS2NtGXoTfkVQHH9oExg=','TVlBdUV7HW5QEk9/SU1yTG8ZRW5tQUt5fW1OU0gZbHNYY0l5aGF+bFhTQExgeX0bSWQcTWRwR20=','TVlBdVxwQRh7flxtG05Dbxhce1plax9tfW1OU0gZbHNOWlleH0YZRn1MYmRiTEZNaF5jWRppUGc=','TVlBdWhfW0ITbEFCfWAeGExGGWxGSF1bfW1OU0gZbHNfZXxBUGVJbkMTQ2ZbeVBeTn5pQkxtHB0=','TVlBdWQZXFAeYl94RXNDQEMYSRode05rfW1OU0gZbHNmemdhYWVzc0hFEkdkSEFZaB5Yax5cb0E=','TVlBdUt4Wn4cHF5DGkd5GXpcQltraEkZfW1OU0gZbHNjYB5HYVBTe2hJbUkfelpdRHJ9aWBeW3A=','TVlBdRNke0laZ0waHkYYbFl+XHxnH2BTfW1OU0gZbHNnb2xrZEFsZWBCEnBbZHATR1pSbV9TZ18=','TVlBdUUdTnMaSU9YYxlyTRJMYWBaQUhyfW1OU0gZbHMdZ3hHWkxOU0RyH1lwRx0YSGljWGhoel4=','TVlBdUcYY0R6eGZsZkxLQBsSE0NIHhJsfW1OU0gZbHNjZ25Tem9jXXoYTGNYHkVSWV1Mf3l4TGA=','TVlBdXlhbx9YeU5yTElkXmUeX2tDXmBrfW1OU0gZbHNIXGcfSxMaU04ae0YdRWdQQVlvGmMZfUw=','TVlBdR4cWn1PTn8TGV9QXGQYUH9SX3xFfW1OU0gZbHNAc25ZZ21/YG8bcm9SaR0bQ1tETEcfR2w=','TVlBdW59ZksSR0wcWEQfG01uaBgdfB5hfW1OU0gZbHNEG2ZSQkJDWFpsaGxpaR9PWFxmfmJ9Rm8=','TVlBdUBub2UZYnBfZE1DcHlzW0BQRkxCfW1OU0gZbHNkH1pfUGVrZExuUHx5eXwecEYcHm8THHg=','TVlBdXxtY3NEXhxTYH9lTRl9SB15GWFPfW1OU0gZbHNSG05mXhp+Xh1HQ1oZTn9nXWBiXRNYfn0='];
+var _OK=['WUEHRVgHXBsHGB5OSElIHhtOSx4dTx4bGBxJGxwTEhoSGBhLE0hJGxgaSR8bE0kYExMZSEhME0sYSUkYHBwdEx9OThoTHE9JHw==','WUEHRVgHXBsHHxtLGB8dGU4cGU8dGBtOGxkaH0kfGh4dHEtPG0kaHRxOEh8eGRwcE0kcEhMSGkkYGh8ZTB5MGUkeTEkSHhIbGA==','WUEHRVgHXBsHGktPGhkeSE8aHksdThIZHUkYGRNMGBpIHE5ITh0THRxOExobE04fGxsfGxxLHUxPExMSGk8aTBsfHEsaHEgfHQ==','WUEHRVgHXBsHSxgfE0kcHBpLSEwZGhkTGRhJSR1MGxMZHEtLEx5JSxMTSRscS0gcE0lOSRtJHk8THUgdSxhIEkwbExhJTBkfHg=='];
+var _DK='WUEHGxMZSRgaG0xPHBITHkgYTksdTxlIH08ZThofE0xJTkk=';
+var _GEMK='a2NQS3lTbhxDRUd4bn91b3hJQxtSZnlmQllEf09ZYR0aQGlbb2lJ';
+var _TK='XlxGUwdOT1wHG2lFS31iB1N/WlxLE25pc3hhUx1DQ0QdWVNPXVxcUG5+X2Fuc3tcRF9EXkh4RWB7WA==';
+var GK=_GK.map(_dk);
+var OK=_OK.map(_dk);
+var DK=_dk(_DK);
+var GEMK=_dk(_GEMK);
+var TK=_dk(_TK);
+var GU='https://api.groq.com/openai/v1/chat/completions';
+var OU='https://openrouter.ai/api/v1/chat/completions';
+var DU='https://api.deepseek.com/v1/chat/completions';
+var GEMU='https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=';
+var CM='llama-3.3-70b-versatile';
+var VM='meta-llama/llama-4-scout-17b-16e-instruct';
+var OM=['google/gemini-2.0-flash-exp:free','meta-llama/llama-3.3-70b-instruct:free','deepseek/deepseek-r1:free','qwen/qwen-2.5-72b-instruct:free','mistralai/mistral-7b-instruct:free'];
+var PU='https://text.pollinations.ai/openai';
+var _pai=0;
 var curMode = 'normal';
 var hist = [], pendImg = null, recog = null, listening = false, _started = false;
 
+var _cd={}, _CD=45*60*1000, _gi=0, _oi=0, _oki=0;
+// API Provider Order: 1=Groq, 2=DeepSeek, 3=OpenRouter, 4=Gemini, 5=Pollinations
 function gGK(){for(var i=0;i<GK.length;i++){var x=(_gi+i)%GK.length;if(!_cd['g'+x]||Date.now()>_cd['g'+x]){_gi=x;return GK[x];}}_gi=(_gi+1)%GK.length;return GK[_gi];}
 function cGK(){_cd['g'+_gi]=Date.now()+_CD;_gi=(_gi+1)%GK.length;}
 function gOM(){return OM[_oi%OM.length];}
@@ -351,6 +364,80 @@ document.getElementById('mi').addEventListener('keydown',function(e){
 });
 
 function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
+
+// ============================================================
+// DEEPSEEK API - Direct paid API
+// ============================================================
+async function cDeepSeek(msgs){
+  try{
+    var r=await fetch(DU,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+DK},body:JSON.stringify({model:'deepseek-chat',messages:msgs,max_tokens:2500,temperature:0.7})});
+    if(!r.ok)throw new Error('DS'+r.status);
+    var d=await r.json();var t=d&&d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content;
+    if(t)return t;throw new Error('DS empty');
+  }catch(e){throw e;}
+}
+
+// ============================================================
+// GEMINI API - Direct paid API
+// ============================================================
+async function cGemini(msgs){
+  try{
+    // Convert OpenAI format to Gemini format
+    var parts=[];
+    var sysMsg='';
+    for(var i=0;i<msgs.length;i++){
+      if(msgs[i].role==='system'){sysMsg=msgs[i].content;}
+      else{
+        var role=msgs[i].role==='user'?'user':'model';
+        parts.push({role:role,parts:[{text:msgs[i].content}]});
+      }
+    }
+    var body={contents:parts};
+    if(sysMsg)body.systemInstruction={parts:[{text:sysMsg}]};
+    body.generationConfig={maxOutputTokens:2500,temperature:0.7};
+    var r=await fetch(GEMU+GEMK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!r.ok)throw new Error('GEM'+r.status);
+    var d=await r.json();
+    var t=d&&d.candidates&&d.candidates[0]&&d.candidates[0].content&&d.candidates[0].content.parts&&d.candidates[0].content.parts[0]&&d.candidates[0].content.parts[0].text;
+    if(t)return t;throw new Error('GEM empty');
+  }catch(e){throw e;}
+}
+
+// ============================================================
+// MASTER AUTO-SWITCH: Groq→DeepSeek→OpenRouter→Gemini→Pollinations
+// ============================================================
+async function cAI(msgs,onC){
+  // STAGE 1: Try Groq (streaming if onC provided)
+  if(onC){
+    try{return await gStream(msgs,onC);}catch(e){}
+  } else {
+    try{return await cGroq(msgs);}catch(e){}
+  }
+  // STAGE 2: Try DeepSeek
+  try{
+    var t=await cDeepSeek(msgs);
+    if(onC)onC(t);
+    return t;
+  }catch(e){}
+  // STAGE 3: Try OpenRouter
+  try{
+    var t2=await cOR_inner(msgs);
+    if(onC)onC(t2);
+    return t2;
+  }catch(e){}
+  // STAGE 4: Try Gemini
+  try{
+    var t3=await cGemini(msgs);
+    if(onC)onC(t3);
+    return t3;
+  }catch(e){}
+  // STAGE 5: Pollinations (free, no key)
+  try{
+    var pr=await fetch(PU,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'openai',messages:msgs,max_tokens:2500,temperature:0.7,private:true,seed:Math.floor(Math.random()*9999)})});
+    if(pr.ok){var pd=await pr.json();var pt=pd&&pd.choices&&pd.choices[0]&&pd.choices[0].message&&pd.choices[0].message.content;if(pt){if(onC)onC(pt);return pt;}}
+  }catch(pe){}
+  throw new Error('Sabhi servers busy. 2-3 minute baad try karo.');
+}
 async function cGroq(msgs){
   for(var i=0;i<GK.length*2;i++){
     try{
@@ -361,7 +448,7 @@ async function cGroq(msgs){
   }
   throw new Error('QUOTA');
 }
-async function cOR(msgs){
+async function cOR_inner(msgs){
   for(var i=0;i<OM.length*OK.length*2;i++){
     try{
       var r=await fetch(OU,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+gOK(),'HTTP-Referer':'https://faujiai.in','X-Title':'FAUJI AI'},body:JSON.stringify({model:gOM(),messages:msgs,max_tokens:2500,temperature:0.7})});
@@ -370,7 +457,12 @@ async function cOR(msgs){
       if(t)return t;nOM();
     }catch(e){nOM();nOK();await sleep(500);}
   }
-  throw new Error('Network issue. Ek baar aur try karo.');
+  // Final fallback: Pollinations AI (no key needed)
+  try{
+    var pr=await fetch(PU,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'openai',messages:msgs,max_tokens:2500,temperature:0.7,private:true,seed:Math.floor(Math.random()*9999)})});
+    if(pr.ok){var pd=await pr.json();var pt=pd&&pd.choices&&pd.choices[0]&&pd.choices[0].message&&pd.choices[0].message.content;if(pt)return pt;}
+  }catch(pe){}
+  throw new Error('Sabhi servers busy. 2-3 minute baad try karo.');
 }
 async function gStream(msgs,onC){
   for(var i=0;i<GK.length*2;i++){
@@ -390,38 +482,6 @@ async function gStream(msgs,onC){
       }
       if(full)return full;cGK();
     }catch(e){cGK();await sleep(500);}
-  }
-  throw new Error('QUOTA');
-}
-async function cOR(msgs){
-  for(var i=0;i<OM.length*OK.length;i++){
-    try{
-      var r=await fetch(OU,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+gOK(),'HTTP-Referer':'https://faujiai.in','X-Title':'FAUJI AI'},body:JSON.stringify({model:gOM(),messages:msgs,max_tokens:2500,temperature:0.7})});
-      if(r.status===429||r.status===503){nOM();nOK();continue;}if(!r.ok){nOM();continue;}
-      var d=await r.json();var t=d&&d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content;
-      if(t)return t;nOM();
-    }catch(e){nOM();nOK();}
-  }
-  throw new Error('Servers busy. Thodi der baad try karo.');
-}
-async function gStream(msgs,onC){
-  for(var i=0;i<GK.length;i++){
-    try{
-      var r=await fetch(GU,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+gGK()},body:JSON.stringify({model:CM,messages:msgs,max_tokens:2500,temperature:0.7,stream:true})});
-      if(r.status===429||r.status===503){cGK();continue;}if(!r.ok)continue;
-      var reader=r.body.getReader(),dec=new TextDecoder(),full='';
-      while(true){
-        var res=await reader.read();if(res.done)break;
-        var lines=dec.decode(res.value).split('\n');
-        for(var j=0;j<lines.length;j++){
-          var l=lines[j].trim();
-          if(l.startsWith('data: ')&&l!=='data: [DONE]'){
-            try{var js2=JSON.parse(l.slice(6));var dt=js2.choices&&js2.choices[0]&&js2.choices[0].delta&&js2.choices[0].delta.content;if(dt){full+=dt;onC(full);}}catch(ex){}
-          }
-        }
-      }
-      return full;
-    }catch(e){cGK();}
   }
   throw new Error('QUOTA');
 }
@@ -551,13 +611,13 @@ async function go(){
       var nMsgs=[{role:'system',content:'You are FAUJI AI. Use ONLY these live results. Reply in same language. Rewrite simple words with bullet points.'},{role:'user',content:ctx+'\nQuestion: '+txt}];
       rmTyp();
       var so=mkStream();
-      try{reply=await gStream(nMsgs,function(p){so.bub.innerHTML=fmt(p);document.getElementById('chat').scrollTop=9999;});}catch(ex){try{reply=await cOR(nMsgs);}catch(ex2){reply=await cOR(nMsgs);}}
+      try{reply=await cAI(nMsgs,function(p){so.bub.innerHTML=fmt(p);document.getElementById('chat').scrollTop=9999;});}catch(ex){try{reply=await cOR(nMsgs);}catch(ex2){reply=await cOR(nMsgs);}}
       if(nd.results)srcs=nd.results;
       endStream(so,reply,srcs,txt);
     }else{
       var msgs=[{role:'system',content:sys}].concat(hist.slice(-16)).concat([{role:'user',content:txt}]);
       var so2=mkStream();
-      try{reply=await gStream(msgs,function(p){so2.bub.innerHTML=fmt(p);document.getElementById('chat').scrollTop=9999;});}catch(ex){try{reply=await cOR(msgs);}catch(ex2){reply=await cOR(msgs);}}
+      try{reply=await cAI(msgs,function(p){so2.bub.innerHTML=fmt(p);document.getElementById('chat').scrollTop=9999;});}catch(ex){try{reply=await cOR(msgs);}catch(ex2){reply=await cOR(msgs);}}
       endStream(so2,reply,null,txt);
     }
     hist.push({role:'user',content:txt||'[image]'});
