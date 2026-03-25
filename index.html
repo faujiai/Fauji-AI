@@ -677,7 +677,8 @@ function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
 // ============================================================
 async function cDeepSeek(msgs){
   try{
-    var r=await fetch(DU,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+DK},body:JSON.stringify({model:'deepseek-chat',messages:msgs,max_tokens:8000,temperature:0.7})});
+    var acD=new AbortController();setTimeout(function(){acD.abort();},8000);
+    var r=await fetch(DU,{method:'POST',signal:acD.signal,headers:{'Content-Type':'application/json','Authorization':'Bearer '+DK},body:JSON.stringify({model:'deepseek-chat',messages:msgs,max_tokens:8000,temperature:0.7})});
     if(!r.ok)throw new Error('DS'+r.status);
     var d=await r.json();var t=d&&d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content;
     if(t)return t;throw new Error('DS empty');
@@ -702,7 +703,8 @@ async function cGemini(msgs){
     var body={contents:parts};
     if(sysMsg)body.systemInstruction={parts:[{text:sysMsg}]};
     body.generationConfig={maxOutputTokens:8000,temperature:0.7};
-    var r=await fetch(GEMU+GEMK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    var acG=new AbortController();setTimeout(function(){acG.abort();},8000);
+    var r=await fetch(GEMU+GEMK,{method:'POST',signal:acG.signal,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     if(!r.ok)throw new Error('GEM'+r.status);
     var d=await r.json();
     var t=d&&d.candidates&&d.candidates[0]&&d.candidates[0].content&&d.candidates[0].content.parts&&d.candidates[0].content.parts[0]&&d.candidates[0].content.parts[0].text;
@@ -715,7 +717,8 @@ async function cGemini(msgs){
 // ============================================================
 async function cCerebras(msgs){
   try{
-    var r=await fetch(CBRU,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+CBRK},
+    var ac3=new AbortController();setTimeout(function(){ac3.abort();},6000);
+    var r=await fetch(CBRU,{method:'POST',signal:ac3.signal,headers:{'Content-Type':'application/json','Authorization':'Bearer '+CBRK},
       body:JSON.stringify({model:'llama-3.3-70b',messages:msgs,max_tokens:8000,temperature:0.7})});
     if(!r.ok)throw new Error('CBR'+r.status);
     var d=await r.json();
@@ -767,7 +770,8 @@ async function cAI(msgs,onC){
     var pm=msgs.map(function(m){
       return m.role==='system'?{role:'system',content:m.content.slice(0,600)}:m;
     });
-    var pr=await fetch(PU,{method:'POST',headers:{'Content-Type':'application/json'},
+    var acP=new AbortController();setTimeout(function(){acP.abort();},8000);
+    var pr=await fetch(PU,{method:'POST',signal:acP.signal,headers:{'Content-Type':'application/json'},
       body:JSON.stringify({model:'openai',messages:pm,max_tokens:2000,temperature:0.7,private:true})});
     if(pr.ok){
       var pd=await pr.json();
@@ -789,8 +793,10 @@ async function cAI(msgs,onC){
 async function cGroq(msgs){
   for(var i=0;i<GK.length*2;i++){
     try{
-      var r=await fetch(GU,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+gGK()},body:JSON.stringify({model:CM,messages:msgs,max_tokens:8000,temperature:0.7})});
-      if(r.status===429||r.status===503||r.status===400||r.status===404){cGK();await sleep(800);continue;}if(!r.ok){cGK();continue;}
+      var ac2=new AbortController();var tid2=setTimeout(function(){ac2.abort();},6000);
+      var r=await fetch(GU,{method:'POST',signal:ac2.signal,headers:{'Content-Type':'application/json','Authorization':'Bearer '+gGK()},body:JSON.stringify({model:CM,messages:msgs,max_tokens:8000,temperature:0.7})});
+      clearTimeout(tid2);
+      if(!r.ok){cGK();continue;}
       var d=await r.json();var t=d&&d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content;if(t)return t;cGK();
     }catch(e){cGK();await sleep(500);}
   }
@@ -800,8 +806,9 @@ async function cOR(msgs){return cOR_inner(msgs);}
 async function cOR_inner(msgs){
   for(var i=0;i<OM.length*OK.length*2;i++){
     try{
-      var r=await fetch(OU,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+gOK(),'HTTP-Referer':'https://faujiai.in','X-Title':'FAUJI AI'},body:JSON.stringify({model:gOM(),messages:msgs,max_tokens:8000,temperature:0.7})});
-      if(r.status===429||r.status===503){nOM();nOK();await sleep(1000);continue;}if(!r.ok){nOM();continue;}
+      var acOR=new AbortController();setTimeout(function(){acOR.abort();},8000);
+      var r=await fetch(OU,{method:'POST',signal:acOR.signal,headers:{'Content-Type':'application/json','Authorization':'Bearer '+gOK(),'HTTP-Referer':'https://faujiai.in','X-Title':'FAUJI AI'},body:JSON.stringify({model:gOM(),messages:msgs,max_tokens:8000,temperature:0.7})});
+      if(!r.ok){nOM();nOK();continue;}
       var d=await r.json();var t=d&&d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content;
       if(t)return t;nOM();
     }catch(e){nOM();nOK();await sleep(500);}
@@ -814,16 +821,24 @@ async function cOR_inner(msgs){
   throw new Error('Sabhi servers busy. 2-3 minute baad try karo.');
 }
 async function gStream(msgs,onC){
-  for(var i=0;i<GK.length*2;i++){
+  // Try only 3 keys max - fast fail if Groq is down
+  var tried=0;
+  for(var i=0;i<GK.length;i++){
+    if(tried>=3)break;
+    tried++;
     try{
-      var r=await fetch(GU,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+gGK()},body:JSON.stringify({model:CM,messages:msgs,max_tokens:8000,temperature:0.7,stream:true})});
-      if(!r.ok){console.warn('Groq stream fail:',r.status);cGK();await sleep(400);continue;}
+      var ac=new AbortController();
+      var tid=setTimeout(function(){ac.abort();},5000); // 5 sec timeout
+      var r=await fetch(GU,{method:'POST',signal:ac.signal,
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+gGK()},
+        body:JSON.stringify({model:CM,messages:msgs,max_tokens:8000,temperature:0.7,stream:true})});
+      clearTimeout(tid);
+      if(!r.ok){cGK();continue;}
       var reader=r.body.getReader(),dec=new TextDecoder('utf-8',{fatal:false}),full='',buf='';
       while(true){
         var res=await reader.read();if(res.done)break;
         buf+=dec.decode(res.value,{stream:true});
-        var lines=buf.split('\n');
-        buf=lines.pop();
+        var lines=buf.split('\n');buf=lines.pop();
         for(var j=0;j<lines.length;j++){
           var l=lines[j].trim();
           if(l.startsWith('data: ')&&l!=='data: [DONE]'){
@@ -832,7 +847,7 @@ async function gStream(msgs,onC){
         }
       }
       if(full)return full;cGK();
-    }catch(e){cGK();await sleep(500);}
+    }catch(e){cGK();}
   }
   throw new Error('QUOTA');
 }
