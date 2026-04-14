@@ -974,8 +974,26 @@ async function go(){
     }else{
       var msgs=[{role:'system',content:sys}].concat(hist.slice(-16)).concat([{role:'user',content:txt}]);
       var so2=mkStream();
-      try{reply=await cAI(msgs,function(p){so2.bub.innerHTML=fmt(p);document.getElementById('chat').scrollTop=9999;});}catch(ex){try{reply=await cOR(msgs);}catch(ex2){reply=await cOR(msgs);}}
-      endStream(so2,reply,null,txt);
+      try{
+        reply=await cAI(msgs,function(p){so2.bub.innerHTML=fmt(p);document.getElementById('chat').scrollTop=9999;});
+        // Check if AI refused - auto search web
+        var lowReply=(reply||'').toLowerCase();
+        if(lowReply.indexOf('i can')>=0 && lowReply.indexOf('help')>=0 && reply.length<200){
+          // AI refused - search web instead
+          try{
+            var nd=await sNews(txt);
+            if(nd && (nd.answer || (nd.results && nd.results.length>0))){
+              var ctx='';
+              if(nd.answer)ctx+='ANSWER: '+nd.answer+'\n';
+              if(nd.results)nd.results.forEach(function(r2,i2){ctx+='['+(i2+1)+']: '+r2.title+'\n'+((r2.content||'').slice(0,400))+'\n';});
+              var webMsgs=[{role:'system',content:'You are FAUJI AI. Answer using web results. Never refuse. Reply in Hindi/Hinglish.'},{role:'user',content:'Web Results:\n'+ctx+'\n\nQuestion: '+txt}];
+              reply=await cAI(webMsgs,function(p){so2.bub.innerHTML=fmt(p);document.getElementById('chat').scrollTop=9999;});
+              if(nd.results)srcs=nd.results;
+            }
+          }catch(se){}
+        }
+      }catch(ex){try{reply=await cOR(msgs);}catch(ex2){reply=await cOR(msgs);}}
+      endStream(so2,reply,srcs,txt);
     }
     hist.push({role:'user',content:txt||'[image]'});
     hist.push({role:'assistant',content:reply});
