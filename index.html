@@ -145,7 +145,7 @@ header{position:relative;z-index:10;background:linear-gradient(180deg,rgba(16,22
   <div class="irow">
     <div class="ibox">
       <button class="att" onclick="document.getElementById('fi').click()" title="Attach file">&#128206;</button>
-      <input id="fi" type="file" accept="image/*" onchange="onFile(event)" style="display:none"/>
+      <input id="fi" type="file" accept="image/*,image/jpeg,image/png,image/jpg,image/gif,image/webp" onchange="onFile(event)" style="display:none"/>
       <textarea id="mi" rows="1" spellcheck="true" autocorrect="on" enterkeyhint="enter" placeholder="Army, News, GK, Medical, Map - kuch bhi pucho..."></textarea>
       <button class="nl-btn" onclick="addNL()" title="New paragraph">&#8629;</button>
       <button id="vbtn" onclick="startVoice()" title="Voice input">&#127908;</button>
